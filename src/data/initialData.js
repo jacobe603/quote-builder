@@ -9,7 +9,12 @@ export const initialData = {
     projectNumber: '',
     bidDate: '',
     customerName: '',
-    engineerCompany: ''
+    attention: '',
+    engineerCompany: '',
+    location: '',
+    quoteNotes: '',
+    addendums: '',
+    salesRep: ''
   },
   suppliers: [
     { id: 'sup1', name: 'SVL' },
@@ -37,6 +42,7 @@ export const initialData = {
       name: 'RTU - AAON RN Series',
       sortOrder: 1,
       equipmentHeading: '',
+      tag: '',
       equipmentBullets: '',
       notes: ''
     }

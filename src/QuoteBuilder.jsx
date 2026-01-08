@@ -209,6 +209,7 @@ function QuoteBuilderContent() {
       name,
       sortOrder: maxSortOrder + 1,
       equipmentHeading: '',
+      tag: '',
       equipmentBullets: '',
       notes: ''
     };
