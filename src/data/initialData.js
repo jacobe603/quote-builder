@@ -3,6 +3,14 @@
  * In production, this would come from a backend API
  */
 export const initialData = {
+  // Project-level metadata for quote document header
+  projectInfo: {
+    projectName: '',
+    projectNumber: '',
+    bidDate: '',
+    customerName: '',
+    engineerCompany: ''
+  },
   suppliers: [
     { id: 'sup1', name: 'SVL' },
     { id: 'sup2', name: 'ControlCo' }

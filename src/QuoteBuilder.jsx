@@ -1,12 +1,18 @@
 import { useState, useCallback } from 'react';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, FileText, Settings } from 'lucide-react';
 
 // Context
 import { NavigationProvider } from './context/NavigationContext';
 
 // Components
 import { Legend, QuotePackage } from './components';
-import { NewPackageModal, NewEquipmentGroupModal, EquipmentGroupDescriptionModal } from './components/modals';
+import {
+  NewPackageModal,
+  NewEquipmentGroupModal,
+  EquipmentGroupDescriptionModal,
+  ProjectInfoModal,
+  QuotePreviewModal
+} from './components/modals';
 
 // Utils & Data
 import { generateId, parseLineNumber } from './utils/helpers';
@@ -21,6 +27,8 @@ function QuoteBuilderContent() {
   const [showNewPackageModal, setShowNewPackageModal] = useState(false);
   const [newGroupPackageId, setNewGroupPackageId] = useState(null);
   const [descriptionGroup, setDescriptionGroup] = useState(null);
+  const [showProjectInfoModal, setShowProjectInfoModal] = useState(false);
+  const [showQuotePreview, setShowQuotePreview] = useState(false);
 
   // Line Item Operations
   const updateLineItem = useCallback((itemId, field, value) => {
@@ -147,6 +155,14 @@ function QuoteBuilderContent() {
       quotePackages: [...prev.quotePackages, newPackage]
     }));
   }, [data.quotePackages]);
+
+  // Project Info Operations
+  const updateProjectInfo = useCallback((projectInfo) => {
+    setData(prev => ({
+      ...prev,
+      projectInfo
+    }));
+  }, []);
 
   // Equipment Group Operations
   const updateEquipmentGroup = useCallback((groupId, field, value) => {
@@ -305,13 +321,29 @@ function QuoteBuilderContent() {
             <h1 className="text-2xl font-bold text-gray-800">Quote Builder</h1>
             <p className="text-sm text-gray-500 mt-1">Excel-like navigation | Arrow keys to move | Enter to edit</p>
           </div>
-          <button
-            onClick={() => setShowNewPackageModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
-          >
-            <Package size={18} />
-            New Quote Package
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowProjectInfoModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg shadow-sm"
+            >
+              <Settings size={18} />
+              Project Info
+            </button>
+            <button
+              onClick={() => setShowQuotePreview(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm"
+            >
+              <FileText size={18} />
+              Generate Quote
+            </button>
+            <button
+              onClick={() => setShowNewPackageModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
+            >
+              <Package size={18} />
+              New Quote Package
+            </button>
+          </div>
         </div>
 
         {/* Legend */}
@@ -384,6 +416,19 @@ function QuoteBuilderContent() {
         onClose={() => setDescriptionGroup(null)}
         group={currentDescriptionGroup}
         onSave={handleSaveDescription}
+      />
+
+      <ProjectInfoModal
+        isOpen={showProjectInfoModal}
+        onClose={() => setShowProjectInfoModal(false)}
+        projectInfo={data.projectInfo}
+        onSave={updateProjectInfo}
+      />
+
+      <QuotePreviewModal
+        isOpen={showQuotePreview}
+        onClose={() => setShowQuotePreview(false)}
+        data={data}
       />
     </div>
   );
