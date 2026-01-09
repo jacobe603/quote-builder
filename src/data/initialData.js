@@ -243,11 +243,48 @@ export const initialData = {
     { id: 'mfr111', name: 'YOUNG REGULATOR' }
   ],
   equipmentTypes: [
-    { id: 'et1', name: 'RTU' },
-    { id: 'et2', name: 'Accessory' },
-    { id: 'et3', name: 'Curb' },
-    { id: 'et4', name: 'Controls' },
-    { id: 'et5', name: 'Service' }
+    { id: 'et1', code: 'ACC', name: 'Accessory', category: null, preferredVendor: 'AAON INC', otherVendors: [] },
+    { id: 'et2', code: 'AHU', name: 'Air Handling Unit', category: null, preferredVendor: 'AAON INC', otherVendors: ['HUNTAIR', 'INNOVENT', 'RENEWAIRE', 'TEMTROL', 'VENMAR'] },
+    { id: 'et3', code: 'Air-Cooled Chiller', name: 'Air-Cooled Chiller', category: null, preferredVendor: 'MULTI-STACK INC', otherVendors: ['DAIKIN APPLIED', 'AERMEC', 'ARCTIC CHILL', 'MOTIVAIR', 'SCHREIBER CHILL', 'TECOCHILL'] },
+    { id: 'et4', code: 'Boiler', name: 'Boiler', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et5', code: 'CDU', name: 'Condensing Unit', category: null, preferredVendor: 'BARD MANUFACTURING', otherVendors: ['CLIMATE BY DESIGNS', 'DAIKIN APPLIED'] },
+    { id: 'et6', code: 'Chiller', name: 'Chiller', category: null, preferredVendor: 'MULTI-STACK INC', otherVendors: ['DAIKIN APPLIED', 'AERMEC', 'ARCTIC CHILL', 'MOTIVAIR', 'SCHREIBER CHILL', 'TECOCHILL'] },
+    { id: 'et7', code: 'CNTR', name: 'Controls', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et8', code: 'Coil', name: 'Coil', category: null, preferredVendor: 'COLMAC', otherVendors: ['MARLO COILS', 'EVAPCO', 'HEAT PIPE TECH', 'DES CHAMPS'] },
+    { id: 'et9', code: 'CRAC', name: 'Comp. Room Air Cond.', category: null, preferredVendor: 'STULZ AIR', otherVendors: ['DATA-AIRE SYSTEMS', 'MOTIVAIR'] },
+    { id: 'et10', code: 'Curb', name: 'Curb', category: null, preferredVendor: 'CDI CUSTOM CURBS', otherVendors: ['PEERLESS FAN', 'THYBAR'] },
+    { id: 'et11', code: 'DOAS', name: 'Dedicated Outdoor Air', category: null, preferredVendor: 'AAON INC', otherVendors: ['INNOVENT', 'RENEWAIRE', 'VENMAR', 'TEMTROL'] },
+    { id: 'et12', code: 'ERV', name: 'Energy Recovery', category: null, preferredVendor: 'RENEWAIRE', otherVendors: ['INNOVENT', 'VENMAR', 'KLINGENBURG', 'TEMTROL', 'TEMPEFF'] },
+    { id: 'et13', code: 'Evap Cooler', name: 'Evaporative Cooler', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et14', code: 'Exhaust Fan', name: 'Exhaust Fan', category: null, preferredVendor: 'COOK COMPANY', otherVendors: ['PEERLESS FAN', 'PENN VENTILATOR COMPANY', 'HALTON', 'GREASE MASTER', 'JENN-FAN COMPANY'] },
+    { id: 'et15', code: 'Fan Coil', name: 'Fan Coil', category: null, preferredVendor: 'CLIMATE BY DESIGNS', otherVendors: ['BARD MANUFACTURING', 'DAIKIN APPLIED', 'INNOVENT'] },
+    { id: 'et16', code: 'Freight', name: 'Freight', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et17', code: 'FTU', name: 'Fan Terminal Unit', category: null, preferredVendor: 'TITUS', otherVendors: [] },
+    { id: 'et18', code: 'Heat Pump', name: 'Heat Pump', category: null, preferredVendor: 'CLIMATEMASTER', otherVendors: [] },
+    { id: 'et19', code: 'Heater', name: 'Heater', category: null, preferredVendor: null, otherVendors: ['CAMBRIDGE AIR SOLUTIONS', 'SCHWANK GROUP', 'INDEECO DIRECT'] },
+    { id: 'et20', code: 'HRV', name: 'Heat Recovery Vent.', category: null, preferredVendor: 'RENEWAIRE', otherVendors: ['INNOVENT', 'VENMAR', 'TEMPEFF'] },
+    { id: 'et21', code: 'Humidifier', name: 'Humidifier', category: null, preferredVendor: 'PURE HUMIDIFIERS', otherVendors: [] },
+    { id: 'et22', code: 'LABORATORY', name: 'Laboratory', category: null, preferredVendor: 'PHOENIX CONTROLS', otherVendors: [] },
+    { id: 'et23', code: 'Louver', name: 'Louver', category: null, preferredVendor: 'RUSKIN CORPORATION', otherVendors: [] },
+    { id: 'et24', code: 'MAU', name: 'Make Up Air Unit', category: null, preferredVendor: 'AAON INC', otherVendors: ['CAMBRIDGE AIR SOLUTIONS', 'INNOVENT', 'VENMAR', 'TEMTROL'] },
+    { id: 'et25', code: 'Mini Split', name: 'Mini Split', category: null, preferredVendor: 'DAIKIN VRV', otherVendors: ['OLIMPIA SPLENDID', 'BARD MANUFACTURING'] },
+    { id: 'et26', code: 'MUA', name: 'Make Up Air', category: null, preferredVendor: 'CAMBRIDGE AIR SOLUTIONS', otherVendors: [] },
+    { id: 'et27', code: 'N/A', name: 'N/A', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et28', code: 'Other', name: 'Other', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et29', code: 'Piping', name: 'Piping', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et30', code: 'PTAC', name: 'PTAC/PTHP', category: null, preferredVendor: 'BARD MANUFACTURING', otherVendors: ['CLIMATE BY DESIGNS', 'ISLANDAIRE'] },
+    { id: 'et31', code: 'Radiant', name: 'Radiant', category: null, preferredVendor: 'SCHWANK GROUP', otherVendors: ['SUPERIOR RADIANT', 'CAMBRIDGE AIR SOLUTIONS'] },
+    { id: 'et32', code: 'RTU', name: 'Rooftop Unit', category: null, preferredVendor: 'AAON INC', otherVendors: ['BARD MANUFACTURING', 'INNOVENT', 'TEMTROL'] },
+    { id: 'et33', code: 'Service', name: 'Service', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et34', code: 'Split System', name: 'Split System', category: null, preferredVendor: 'BARD MANUFACTURING', otherVendors: ['DAIKIN APPLIED', 'CLIMATE BY DESIGNS'] },
+    { id: 'et35', code: 'Start Up', name: 'Start Up', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et36', code: 'Tax', name: 'Tax', category: null, preferredVendor: null, otherVendors: [] },
+    { id: 'et37', code: 'Tower', name: 'Cooling Tower', category: null, preferredVendor: 'EVAPCO', otherVendors: ['IMECO'] },
+    { id: 'et38', code: 'UH', name: 'Unit Heater', category: null, preferredVendor: 'CAMBRIDGE AIR SOLUTIONS', otherVendors: ['SCHWANK GROUP', 'MODINE', 'REZNOR'] },
+    { id: 'et39', code: 'VAV', name: 'Variable Air Volume', category: null, preferredVendor: 'TITUS', otherVendors: ['PRICE'] },
+    { id: 'et40', code: 'VRF', name: 'Variable Ref Flow', category: null, preferredVendor: 'DAIKIN VRV', otherVendors: [] },
+    { id: 'et41', code: 'Water-Cooled Chiller', name: 'Water-Cooled Chiller', category: null, preferredVendor: 'MULTI-STACK INC', otherVendors: ['DAIKIN APPLIED', 'AERMEC', 'ARCTIC CHILL'] },
+    { id: 'et42', code: 'WSHP', name: 'Water Source Heat Pump', category: null, preferredVendor: 'CLIMATEMASTER', otherVendors: ['MAMMOTH', 'BARD MANUFACTURING', 'CLIMATE BY DESIGNS'] }
   ],
   quotePackages: [
     { id: 'pkg1', name: 'Rooftop Units', defaultMU: 1.35, sortOrder: 1 }
@@ -267,43 +304,43 @@ export const initialData = {
   lineItems: [
     {
       id: 'li1', equipmentGroupId: 'grp1', parentLineItemId: null,
-      qty: 3, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et1',
+      qty: 3, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et32',
       model: 'RN-030', listPrice: 18000, priceIncrease: 0.03, multiplier: 0.42,
       pay: 0.05, freight: 1200, markup: 1.35, shorthand: '(3) RN-030', sortOrder: 1
     },
     {
       id: 'li2', equipmentGroupId: 'grp1', parentLineItemId: 'li1',
-      qty: 3, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et2',
+      qty: 3, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et1',
       model: 'Economizer', listPrice: 1100, priceIncrease: 0.03, multiplier: 0.42,
       pay: 0, freight: 0, markup: 1.35, shorthand: 'Economizers', sortOrder: 1
     },
     {
       id: 'li3', equipmentGroupId: 'grp1', parentLineItemId: 'li1',
-      qty: 3, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et2',
+      qty: 3, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et1',
       model: 'Hail Guards', listPrice: 600, priceIncrease: 0.03, multiplier: 0.42,
       pay: 0, freight: 0, markup: 1.35, shorthand: 'Hail Guards', sortOrder: 2
     },
     {
       id: 'li4', equipmentGroupId: 'grp1', parentLineItemId: null,
-      qty: 2, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et1',
+      qty: 2, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et32',
       model: 'RN-040', listPrice: 22000, priceIncrease: 0.03, multiplier: 0.42,
       pay: 0.05, freight: 800, markup: 1.35, shorthand: '(2) RN-040', sortOrder: 2
     },
     {
       id: 'li5', equipmentGroupId: 'grp1', parentLineItemId: null,
-      qty: 5, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et3',
+      qty: 5, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et10',
       model: 'RN-Curb', listPrice: 1200, priceIncrease: 0.03, multiplier: 0.42,
       pay: 0, freight: 400, markup: 1.35, shorthand: 'Roof Curbs', sortOrder: 3
     },
     {
       id: 'li6', equipmentGroupId: 'grp1', parentLineItemId: null,
-      qty: 1, supplierId: 'sup2', manufacturerId: 'mfr2', equipmentTypeId: 'et4',
+      qty: 1, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et7',
       model: 'JACE-8000', listPrice: 4500, priceIncrease: 0, multiplier: 0.65,
       pay: 0, freight: 0, markup: 1.40, shorthand: 'Controls', sortOrder: 4
     },
     {
       id: 'li7', equipmentGroupId: 'grp1', parentLineItemId: null,
-      qty: 1, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et5',
+      qty: 1, supplierId: 'sup1', manufacturerId: 'mfr1', equipmentTypeId: 'et35',
       model: 'Startup', listPrice: 2100, priceIncrease: 0, multiplier: 1.0,
       pay: 0, freight: 0, markup: 1.35, shorthand: 'Startup', sortOrder: 5
     }
