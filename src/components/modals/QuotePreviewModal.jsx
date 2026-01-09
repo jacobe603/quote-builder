@@ -5,6 +5,7 @@ import { formatCurrency } from '../../utils/helpers';
 
 /**
  * Generate HTML content for the quote document
+ * Styled to match SVL quote PDF format
  */
 const generateQuoteHTML = (data) => {
   const { projectInfo, quotePackages, equipmentGroups, lineItems } = data;
@@ -12,21 +13,31 @@ const generateQuoteHTML = (data) => {
   // Sort packages by sortOrder
   const sortedPackages = [...quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-  // Format date for display
+  // Format date for display (M/D/YYYY format)
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
   };
 
-  // Parse bullets text into array (handles both • and - as bullet markers, or plain lines)
-  const parseBullets = (bulletsText) => {
-    if (!bulletsText) return [];
-    return bulletsText
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .map(line => line.replace(/^[•\-*]\s*/, '')); // Remove bullet markers
+  // Parse bullets text into array, preserving NOTE: lines separately
+  const parseContent = (text) => {
+    if (!text) return { bullets: [], notes: [] };
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const bullets = [];
+    const notes = [];
+
+    lines.forEach(line => {
+      // Check if line starts with NOTE: or is a note indicator
+      if (line.toUpperCase().startsWith('NOTE:') || line.toUpperCase().startsWith('NOTE ')) {
+        notes.push(line);
+      } else {
+        // Remove bullet markers
+        bullets.push(line.replace(/^[•\-*]\s*/, ''));
+      }
+    });
+
+    return { bullets, notes };
   };
 
   // Calculate package total bid price
@@ -41,34 +52,44 @@ const generateQuoteHTML = (data) => {
     }, 0);
   };
 
+  // Generate dot leaders for price line
+  const dotLeader = '......................................................................................';
+
   let html = `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #333;">
-      <!-- Header -->
-      <div style="margin-bottom: 40px; border-bottom: 2px solid #2563eb; padding-bottom: 20px;">
-        <h1 style="font-size: 28px; font-weight: bold; color: #1e40af; margin: 0 0 20px 0;">Equipment Quote</h1>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 4px 0; width: 140px; font-weight: 600; color: #6b7280;">Project Name:</td>
-            <td style="padding: 4px 0;">${projectInfo.projectName || '—'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px 0; font-weight: 600; color: #6b7280;">Project Number:</td>
-            <td style="padding: 4px 0;">${projectInfo.projectNumber || '—'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px 0; font-weight: 600; color: #6b7280;">Bid Date:</td>
-            <td style="padding: 4px 0;">${formatDate(projectInfo.bidDate) || '—'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px 0; font-weight: 600; color: #6b7280;">Customer:</td>
-            <td style="padding: 4px 0;">${projectInfo.customerName || '—'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px 0; font-weight: 600; color: #6b7280;">Engineer:</td>
-            <td style="padding: 4px 0;">${projectInfo.engineerCompany || '—'}</td>
-          </tr>
-        </table>
+    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #333; font-size: 11pt; line-height: 1.4;">
+
+      <!-- Company Header -->
+      <div style="text-align: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 2px solid #f97316;">
+        <div style="font-size: 9pt; color: #666;">
+          2920 Centre Pointe Drive, Roseville, MN 55113 | Phone: 651-481-8000 | Fax: 651-481-8621
+        </div>
+        <div style="font-size: 9pt; color: #0066cc; margin-top: 4px;">
+          www.svl.com | projects@svl.com
+        </div>
       </div>
+
+      <!-- Info Table -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10pt; border: 1px solid #000;">
+        <tr>
+          <td style="padding: 4px 8px; border: 1px solid #000; width: 33%;">
+            <div><strong>To:</strong> ${projectInfo.customerName || ''}</div>
+            <div><strong>Attn:</strong> ${projectInfo.attention || ''}</div>
+            <div><strong>Engineer:</strong> ${projectInfo.engineerCompany || ''}</div>
+            <div><strong>Page(s):</strong> 1</div>
+          </td>
+          <td style="padding: 4px 8px; border: 1px solid #000; width: 34%;">
+            <div><strong>Project:</strong> ${projectInfo.projectName || ''}</div>
+            <div><strong>Location:</strong> ${projectInfo.location || ''}</div>
+            <div><strong>Notes:</strong> ${projectInfo.quoteNotes || ''}</div>
+          </td>
+          <td style="padding: 4px 8px; border: 1px solid #000; width: 33%;">
+            <div><strong>Date:</strong> ${formatDate(new Date().toISOString().split('T')[0])}</div>
+            <div><strong>SVL Quote #:</strong> ${projectInfo.projectNumber || ''}</div>
+            <div><strong>Bid Date:</strong> ${formatDate(projectInfo.bidDate)}</div>
+            <div><strong>Addendums:</strong> ${projectInfo.addendums || ''}</div>
+          </td>
+        </tr>
+      </table>
   `;
 
   // Generate each package section
@@ -79,10 +100,10 @@ const generateQuoteHTML = (data) => {
 
     const packageTotal = calculatePackageTotal(pkg.id);
 
+    // Package Header - Blue with underline, italic "Basis of Design" style
     html += `
-      <div style="margin-bottom: 40px;">
-        <!-- Package Header -->
-        <h2 style="font-size: 22px; font-weight: bold; color: #1e3a5f; margin: 0 0 20px 0; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">
+      <div style="margin-bottom: 24px;">
+        <h2 style="font-size: 12pt; font-weight: normal; color: #0066cc; margin: 0 0 2px 0; padding-bottom: 2px; border-bottom: 1px solid #000;">
           ${pkg.name}
         </h2>
     `;
@@ -92,56 +113,79 @@ const generateQuoteHTML = (data) => {
       const hasContent = group.equipmentHeading || group.equipmentBullets || group.notes;
 
       if (hasContent) {
-        html += `<div style="margin-bottom: 24px; padding-left: 16px;">`;
-
-        // Equipment Heading
+        // Equipment heading line with tag right-aligned
         if (group.equipmentHeading) {
           html += `
-            <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">
-              ${group.equipmentHeading}
-            </h3>
-          `;
-        }
-
-        // Equipment Bullets
-        if (group.equipmentBullets) {
-          const bullets = parseBullets(group.equipmentBullets);
-          if (bullets.length > 0) {
-            html += `<ul style="margin: 0 0 16px 0; padding-left: 24px; list-style-type: disc;">`;
-            bullets.forEach(bullet => {
-              html += `<li style="margin-bottom: 6px; line-height: 1.5;">${bullet}</li>`;
-            });
-            html += `</ul>`;
-          }
-        }
-
-        // Notes
-        if (group.notes) {
-          html += `
-            <div style="margin-top: 12px; padding: 12px; background-color: #f9fafb; border-left: 3px solid #9ca3af; font-style: italic; color: #6b7280;">
-              ${group.notes.replace(/\n/g, '<br>')}
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; margin-bottom: 4px;">
+              <div style="font-weight: bold;">
+                ${group.equipmentHeading}
+              </div>
+              ${group.tag ? `<div style="font-weight: bold;">Tag: ${group.tag}</div>` : ''}
             </div>
           `;
         }
 
-        html += `</div>`;
+        // Parse content for bullets and notes
+        const { bullets, notes: inlineNotes } = parseContent(group.equipmentBullets);
+
+        // Equipment Bullets
+        if (bullets.length > 0) {
+          html += `<ul style="margin: 0 0 8px 40px; padding: 0; list-style-type: disc;">`;
+          bullets.forEach(bullet => {
+            html += `<li style="margin-bottom: 2px;">${bullet}</li>`;
+          });
+          html += `</ul>`;
+        }
+
+        // Inline notes from bullets (NOTE: lines)
+        if (inlineNotes.length > 0) {
+          inlineNotes.forEach(note => {
+            html += `<div style="margin-left: 40px; margin-bottom: 4px;"><strong>${note}</strong></div>`;
+          });
+        }
+
+        // Notes section
+        if (group.notes) {
+          const notesLines = group.notes.split('\n').filter(line => line.trim());
+          notesLines.forEach(note => {
+            // Check if it's a clarification or note that should be highlighted
+            if (note.toUpperCase().includes('NOT INCLUDED') || note.toUpperCase().includes('CLARIFICATION')) {
+              html += `<div style="margin-left: 40px; margin-bottom: 4px;"><strong style="color: #0066cc; text-decoration: underline;">${note}</strong></div>`;
+            } else {
+              html += `<div style="margin-left: 40px; margin-bottom: 4px;">${note}</div>`;
+            }
+          });
+        }
       }
     });
 
-    // Package Total Price
+    // Package Total Price with dot leaders
+    const priceStr = formatCurrency(packageTotal);
     html += `
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: right;">
-          <span style="font-size: 16px; font-weight: 600; color: #1e3a5f;">
-            Net Price, Freight included
-            <span style="display: inline-block; width: 40px; text-align: center;">.......</span>
-            ${formatCurrency(packageTotal)}
-          </span>
+        <div style="margin-top: 12px; color: #f97316; font-weight: bold;">
+          Total net price, freight allowed ${dotLeader.substring(0, 80 - priceStr.length)} ${priceStr}
         </div>
       </div>
     `;
   });
 
-  html += `</div>`;
+  // Footer - Sincerely
+  html += `
+      <div style="margin-top: 40px;">
+        <div>Sincerely,</div>
+        <div style="font-family: 'Brush Script MT', cursive; font-size: 16pt; margin-top: 8px; color: #333;">
+          ${projectInfo.salesRep || 'Sales Representative'}
+        </div>
+      </div>
+
+      <!-- Terms Footer -->
+      <div style="margin-top: 40px; padding-top: 12px; border-top: 2px solid #f97316; font-size: 8pt; text-align: center; color: #666;">
+        <div style="font-weight: bold;">ALL SALES ARE SUBJECT TO SVL'S TERMS AND CONDITIONS OF SALE, AVAILABLE AT</div>
+        <div><a href="https://www.svl.com/terms-and-conditions/" style="color: #0066cc;">https://www.svl.com/terms-and-conditions/</a>, apply to this proposal/sale. Sales & use taxes not included.</div>
+        <div>Goods will conform to approved/reviewed submittals. Quotes are valid for 30 days.</div>
+      </div>
+    </div>
+  `;
 
   return html;
 };
@@ -168,6 +212,10 @@ const QuotePreviewModal = ({ isOpen, onClose, data }) => {
             @media print {
               body { margin: 0; padding: 20px; }
               @page { margin: 0.5in; }
+            }
+            body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
           </style>
         </head>

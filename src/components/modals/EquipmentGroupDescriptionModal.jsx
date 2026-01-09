@@ -7,6 +7,7 @@ import Modal from '../Modal';
  */
 const EquipmentGroupDescriptionModal = ({ isOpen, onClose, group, onSave }) => {
   const [equipmentHeading, setEquipmentHeading] = useState(group?.equipmentHeading || '');
+  const [tag, setTag] = useState(group?.tag || '');
   const [equipmentBullets, setEquipmentBullets] = useState(group?.equipmentBullets || '');
   const [notes, setNotes] = useState(group?.notes || '');
 
@@ -14,6 +15,7 @@ const EquipmentGroupDescriptionModal = ({ isOpen, onClose, group, onSave }) => {
   useEffect(() => {
     if (group) {
       setEquipmentHeading(group.equipmentHeading || '');
+      setTag(group.tag || '');
       setEquipmentBullets(group.equipmentBullets || '');
       setNotes(group.notes || '');
     }
@@ -22,6 +24,7 @@ const EquipmentGroupDescriptionModal = ({ isOpen, onClose, group, onSave }) => {
   const handleSave = () => {
     onSave({
       equipmentHeading,
+      tag,
       equipmentBullets,
       notes
     });
@@ -33,19 +36,34 @@ const EquipmentGroupDescriptionModal = ({ isOpen, onClose, group, onSave }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Description: ${group.name}`} size="lg">
       <div className="space-y-4">
-        {/* Equipment Heading */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Equipment Heading
-          </label>
-          <input
-            type="text"
-            value={equipmentHeading}
-            onChange={(e) => setEquipmentHeading(e.target.value)}
-            placeholder="e.g., AAON RN Series Rooftop Units"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">Single line heading for the equipment section</p>
+        {/* Equipment Heading and Tag */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Equipment Heading
+            </label>
+            <input
+              type="text"
+              value={equipmentHeading}
+              onChange={(e) => setEquipmentHeading(e.target.value)}
+              placeholder="e.g., (22) Jaga Briza Fan Coil Units with:"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Include quantity in parentheses, e.g., (22) Equipment Name</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tag
+            </label>
+            <input
+              type="text"
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              placeholder="e.g., FC-1,3,4,6"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Equipment tag reference</p>
+          </div>
         </div>
 
         {/* Equipment Bullets */}
@@ -66,16 +84,16 @@ const EquipmentGroupDescriptionModal = ({ isOpen, onClose, group, onSave }) => {
         {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Notes
+            Notes / Clarifications
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Internal notes, special conditions, installation requirements..."
+            placeholder="Clarifications:&#10;ATC Valves are NOT included.&#10;&#10;Special conditions, exclusions, etc."
             rows={6}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
-          <p className="text-xs text-gray-500 mt-1">Internal notes (approx. 10 lines)</p>
+          <p className="text-xs text-gray-500 mt-1">Clarifications and notes shown on quote (NOT INCLUDED items will be highlighted)</p>
         </div>
 
         {/* Actions */}
