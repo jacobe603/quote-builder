@@ -167,6 +167,7 @@ function QuoteBuilderContent() {
   }, []);
 
   // Handle package number change for moving packages
+  // Implements bubble-up: when moving to position N, package goes there and others shift down
   const movePackage = useCallback((packageId, newPackageNum) => {
     const targetNum = parseInt(newPackageNum, 10);
     if (isNaN(targetNum) || targetNum < 1) {
@@ -176,18 +177,19 @@ function QuoteBuilderContent() {
 
     setData(prev => {
       const sortedPackages = [...prev.quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-      const currentIdx = sortedPackages.findIndex(p => p.id === packageId);
-      const targetIdx = Math.min(Math.max(targetNum - 1, 0), sortedPackages.length - 1);
+      const pkg = sortedPackages.find(p => p.id === packageId);
+      if (!pkg) return prev;
 
-      if (currentIdx === targetIdx) return prev;
+      // Remove the moving package from the list
+      const filtered = sortedPackages.filter(p => p.id !== packageId);
 
-      // Remove from current position and insert at target
-      const [movedPkg] = sortedPackages.splice(currentIdx, 1);
-      sortedPackages.splice(targetIdx, 0, movedPkg);
+      // Insert at the target position (1-indexed to 0-indexed)
+      const targetIdx = Math.max(0, Math.min(targetNum - 1, filtered.length));
+      filtered.splice(targetIdx, 0, pkg);
 
       // Reassign sort orders
-      const updatedPackages = sortedPackages.map((pkg, idx) => ({
-        ...pkg,
+      const updatedPackages = filtered.map((p, idx) => ({
+        ...p,
         sortOrder: idx + 1
       }));
 
@@ -200,6 +202,7 @@ function QuoteBuilderContent() {
 
   // Handle line number change for moving items
   // Format: X.Y for primary lines, X.Y.Z for sub-lines
+  // Implements bubble-up: when moving to position N, item goes there and others shift down
   const moveLineItem = useCallback((itemId, oldLineNum, newLineNum) => {
     const parsed = parseLineNumber(newLineNum);
     const item = data.lineItems.find(li => li.id === itemId);
@@ -226,20 +229,43 @@ function QuoteBuilderContent() {
         return;
       }
 
-      setData(prev => ({
-        ...prev,
-        lineItems: prev.lineItems.map(li => {
-          if (li.id === itemId) {
-            return {
-              ...li,
-              packageId: targetPackage.id,
-              parentLineItemId: targetPrimary.id,
-              sortOrder: parsed.itemNum
-            };
-          }
-          return li;
-        })
-      }));
+      setData(prev => {
+        // Get all sub-lines under the target primary, sorted
+        const subLines = prev.lineItems
+          .filter(li => li.parentLineItemId === targetPrimary.id)
+          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+        // Remove the moving item from the list
+        const filtered = subLines.filter(li => li.id !== itemId);
+
+        // Insert at the target position (1-indexed to 0-indexed)
+        const targetIdx = Math.max(0, Math.min(parsed.itemNum - 1, filtered.length));
+        filtered.splice(targetIdx, 0, { ...item, packageId: targetPackage.id, parentLineItemId: targetPrimary.id });
+
+        // Reassign sort orders
+        const newSortOrders = {};
+        filtered.forEach((li, idx) => {
+          newSortOrders[li.id] = idx + 1;
+        });
+
+        return {
+          ...prev,
+          lineItems: prev.lineItems.map(li => {
+            if (li.id === itemId) {
+              return {
+                ...li,
+                packageId: targetPackage.id,
+                parentLineItemId: targetPrimary.id,
+                sortOrder: newSortOrders[itemId] || parsed.itemNum
+              };
+            }
+            if (newSortOrders[li.id] !== undefined) {
+              return { ...li, sortOrder: newSortOrders[li.id] };
+            }
+            return li;
+          })
+        };
+      });
     } else if (parsed.groupNum) {
       // Moving a primary line (X.Y format)
       const targetPackage = sortedPackages[parsed.packageNum - 1];
@@ -249,29 +275,45 @@ function QuoteBuilderContent() {
       }
 
       setData(prev => {
-        // Update the primary line
-        const updatedItems = prev.lineItems.map(li => {
-          if (li.id === itemId) {
-            return {
-              ...li,
-              packageId: targetPackage.id,
-              parentLineItemId: null,
-              sortOrder: parsed.groupNum
-            };
-          }
-          // Also move sub-lines if parent is being moved to different package
-          if (li.parentLineItemId === itemId && item.packageId !== targetPackage.id) {
-            return {
-              ...li,
-              packageId: targetPackage.id
-            };
-          }
-          return li;
+        // Get all primary lines in the target package, sorted
+        const primaryLines = prev.lineItems
+          .filter(li => li.packageId === targetPackage.id && li.parentLineItemId === null)
+          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+        // Remove the moving item from the list
+        const filtered = primaryLines.filter(li => li.id !== itemId);
+
+        // Insert at the target position (1-indexed to 0-indexed)
+        const targetIdx = Math.max(0, Math.min(parsed.groupNum - 1, filtered.length));
+        filtered.splice(targetIdx, 0, { ...item, packageId: targetPackage.id, parentLineItemId: null });
+
+        // Reassign sort orders
+        const newSortOrders = {};
+        filtered.forEach((li, idx) => {
+          newSortOrders[li.id] = idx + 1;
         });
 
         return {
           ...prev,
-          lineItems: updatedItems
+          lineItems: prev.lineItems.map(li => {
+            if (li.id === itemId) {
+              return {
+                ...li,
+                packageId: targetPackage.id,
+                parentLineItemId: null,
+                sortOrder: newSortOrders[itemId] || parsed.groupNum
+              };
+            }
+            // Also move sub-lines if parent is being moved to different package
+            if (li.parentLineItemId === itemId && item.packageId !== targetPackage.id) {
+              return { ...li, packageId: targetPackage.id };
+            }
+            // Update sort order for other primary lines in the target package
+            if (newSortOrders[li.id] !== undefined) {
+              return { ...li, sortOrder: newSortOrders[li.id] };
+            }
+            return li;
+          })
         };
       });
     }

@@ -70,10 +70,10 @@ const QuotePackage = ({
   return (
     <div className="mb-8">
       {/* Package Header */}
-      <div className="bg-svl-navy text-white px-5 py-4 rounded-t-xl shadow-lg">
+      <div className="bg-svl-orange-light border border-svl-orange px-4 py-2 rounded-t-xl shadow">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {editingPackageNum ? (
                 <input
                   type="text"
@@ -88,11 +88,11 @@ const QuotePackage = ({
                     }
                   }}
                   autoFocus
-                  className="bg-svl-blue-bright text-white text-lg font-bold w-10 h-8 rounded-full text-center border-2 border-white"
+                  className="bg-svl-orange text-white text-sm font-bold w-8 h-7 rounded-full text-center border-2 border-svl-burnt"
                 />
               ) : (
                 <span
-                  className="bg-svl-blue-bright text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white"
+                  className="bg-svl-orange text-white text-sm font-bold w-7 h-7 rounded-full flex items-center justify-center cursor-pointer hover:bg-svl-burnt"
                   onClick={() => {
                     setPackageNumValue(String(packageNumber));
                     setEditingPackageNum(true);
@@ -102,7 +102,7 @@ const QuotePackage = ({
                   {packageNumber}
                 </span>
               )}
-              <Package size={20} className="text-svl-gray" />
+              <Package size={18} className="text-svl-burnt" />
               {editingName ? (
                 <input
                   type="text"
@@ -111,11 +111,11 @@ const QuotePackage = ({
                   onBlur={handleNameSave}
                   onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
                   autoFocus
-                  className="bg-svl-blue/50 border border-svl-blue rounded px-2 py-1 text-lg font-bold w-64"
+                  className="bg-white border border-svl-orange rounded px-2 py-0.5 text-base font-bold w-64 text-svl-burnt"
                 />
               ) : (
                 <h2
-                  className="text-xl font-bold cursor-pointer hover:bg-svl-blue/30 px-2 py-1 rounded"
+                  className="text-lg font-bold text-svl-burnt cursor-pointer hover:bg-svl-orange/20 px-2 py-0.5 rounded"
                   onClick={() => setEditingName(true)}
                   title="Click to edit name"
                 >
@@ -123,35 +123,35 @@ const QuotePackage = ({
                 </h2>
               )}
             </div>
-            <div className="flex items-center gap-2 text-sm bg-svl-blue/30 px-3 py-1 rounded">
-              <span className="text-svl-gray">Default MU:</span>
+            <div className="flex items-center gap-2 text-xs bg-white/50 border border-svl-orange/30 px-2 py-0.5 rounded">
+              <span className="text-svl-gray-dark">Default MU:</span>
               <input
                 type="text"
                 value={pkg.defaultMU}
                 onChange={(e) => onUpdatePackageMU(pkg.id, parseFloat(e.target.value) || 1)}
-                className="w-16 px-2 py-0.5 text-sm bg-svl-blue/50 border border-svl-blue rounded text-center text-white"
+                className="w-14 px-1.5 py-0.5 text-xs bg-white border border-svl-gray rounded text-center text-svl-black"
               />
             </div>
             <button
               onClick={() => onDeletePackage(pkg.id)}
-              className="p-1.5 hover:bg-svl-red/30 rounded text-svl-red-light"
+              className="p-1 hover:bg-svl-red-light rounded text-svl-red"
               title="Delete Quote Package"
             >
-              <Trash2 size={18} />
+              <Trash2 size={16} />
             </button>
           </div>
-          <div className="flex gap-8">
+          <div className="flex gap-6">
             <div className="text-right">
-              <div className="text-xs text-svl-gray uppercase tracking-wide">Total Net</div>
-              <div className="text-lg font-semibold">{formatCurrency(packageTotals.totalNet)}</div>
+              <div className="text-xs text-svl-gray-dark uppercase tracking-wide">Total Net</div>
+              <div className="text-sm font-semibold text-svl-black">{formatCurrency(packageTotals.totalNet)}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-svl-gray uppercase tracking-wide">Commission</div>
-              <div className="text-lg font-semibold text-svl-green">{formatCurrency(packageTotals.salesComm)}</div>
+              <div className="text-xs text-svl-gray-dark uppercase tracking-wide">Commission</div>
+              <div className="text-sm font-semibold text-svl-green">{formatCurrency(packageTotals.salesComm)}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-svl-gray uppercase tracking-wide">Bid Price</div>
-              <div className="text-xl font-bold text-svl-blue-bright">{formatCurrency(packageTotals.bidPrice)}</div>
+              <div className="text-xs text-svl-gray-dark uppercase tracking-wide">Bid Price</div>
+              <div className="text-base font-bold text-svl-orange">{formatCurrency(packageTotals.bidPrice)}</div>
             </div>
           </div>
         </div>
