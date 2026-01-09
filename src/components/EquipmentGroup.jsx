@@ -12,10 +12,12 @@ const EquipmentGroup = ({
   group,
   lineItems,
   packageNumber,
+  groupNumber,
   onUpdateLineItem,
   onDeleteLineItem,
   onAddLineItem,
   onMoveLineItem,
+  onMoveGroup,
   onDeleteGroup,
   onUpdateGroup,
   onOpenDescription,
@@ -24,6 +26,8 @@ const EquipmentGroup = ({
   const [expanded, setExpanded] = useState(true);
   const [editingName, setEditingName] = useState(false);
   const [groupName, setGroupName] = useState(group.name);
+  const [editingGroupNum, setEditingGroupNum] = useState(false);
+  const [groupNumValue, setGroupNumValue] = useState(`${packageNumber}.${groupNumber}`);
 
   const sortedItems = [...lineItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
@@ -33,6 +37,12 @@ const EquipmentGroup = ({
   const handleNameSave = () => {
     setEditingName(false);
     onUpdateGroup(group.id, 'name', groupName);
+  };
+
+  const handleGroupNumSave = () => {
+    setEditingGroupNum(false);
+    onMoveGroup(group.id, groupNumValue, group.packageId);
+    setGroupNumValue(`${packageNumber}.${groupNumber}`);
   };
 
   // Check if description has content
@@ -46,6 +56,35 @@ const EquipmentGroup = ({
           <button onClick={() => setExpanded(!expanded)} className="p-0.5 hover:bg-svl-navy rounded">
             {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
           </button>
+          {/* Editable Group Number */}
+          {editingGroupNum ? (
+            <input
+              type="text"
+              value={groupNumValue}
+              onChange={(e) => setGroupNumValue(e.target.value)}
+              onBlur={handleGroupNumSave}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleGroupNumSave();
+                if (e.key === 'Escape') {
+                  setGroupNumValue(`${packageNumber}.${groupNumber}`);
+                  setEditingGroupNum(false);
+                }
+              }}
+              autoFocus
+              className="bg-svl-blue-bright text-white text-sm font-bold w-14 px-1.5 py-0.5 rounded text-center border border-white"
+            />
+          ) : (
+            <span
+              className="bg-svl-blue-bright/50 text-white text-sm font-bold px-2 py-0.5 rounded cursor-pointer hover:bg-svl-blue-bright"
+              onClick={() => {
+                setGroupNumValue(`${packageNumber}.${groupNumber}`);
+                setEditingGroupNum(true);
+              }}
+              title="Click to change group order (format: Package.Group)"
+            >
+              {packageNumber}.{groupNumber}
+            </span>
+          )}
           <Layers size={16} className="text-svl-blue-light" />
           {editingName ? (
             <input
@@ -101,7 +140,7 @@ const EquipmentGroup = ({
           <table className="w-full min-w-max">
             <thead>
               <tr className="bg-svl-gray-light text-xs text-svl-gray-dark border-b-2 border-svl-gray">
-                <th className="py-2 px-1 text-center w-16 bg-svl-gray border-r border-svl-gray">#</th>
+                <th className="py-2 px-1 text-center w-20 bg-svl-gray border-r border-svl-gray">#</th>
                 <th className="py-2 px-1 text-left w-12">Qty</th>
                 <th className="py-2 px-1 text-left w-20">Supplier</th>
                 <th className="py-2 px-1 text-left w-20">Mfr</th>
@@ -126,7 +165,7 @@ const EquipmentGroup = ({
                 <LineItemRow
                   key={item.id}
                   item={item}
-                  lineNumber={`${packageNumber}.${idx + 1}`}
+                  lineNumber={`${packageNumber}.${groupNumber}.${idx + 1}`}
                   onUpdate={(field, value) => onUpdateLineItem(item.id, field, value)}
                   onDelete={() => onDeleteLineItem(item.id)}
                   onMove={onMoveLineItem}

@@ -17,6 +17,8 @@ const QuotePackage = ({
   onDeleteLineItem,
   onAddLineItem,
   onMoveLineItem,
+  onMovePackage,
+  onMoveEquipmentGroup,
   onUpdatePackageMU,
   onUpdatePackage,
   onDeletePackage,
@@ -28,6 +30,8 @@ const QuotePackage = ({
 }) => {
   const [editingName, setEditingName] = useState(false);
   const [packageName, setPackageName] = useState(pkg.name);
+  const [editingPackageNum, setEditingPackageNum] = useState(false);
+  const [packageNumValue, setPackageNumValue] = useState(String(packageNumber));
 
   // Calculate package totals
   const packageTotals = calculateGroupTotals(lineItems);
@@ -37,6 +41,15 @@ const QuotePackage = ({
     onUpdatePackage(pkg.id, 'name', packageName);
   };
 
+  const handlePackageNumSave = () => {
+    setEditingPackageNum(false);
+    const newNum = parseInt(packageNumValue, 10);
+    if (!isNaN(newNum) && newNum !== packageNumber) {
+      onMovePackage(pkg.id, newNum);
+    }
+    setPackageNumValue(String(packageNumber));
+  };
+
   return (
     <div className="mb-8">
       {/* Package Header */}
@@ -44,9 +57,34 @@ const QuotePackage = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <span className="bg-svl-blue-bright text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">
-                {packageNumber}
-              </span>
+              {editingPackageNum ? (
+                <input
+                  type="text"
+                  value={packageNumValue}
+                  onChange={(e) => setPackageNumValue(e.target.value)}
+                  onBlur={handlePackageNumSave}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handlePackageNumSave();
+                    if (e.key === 'Escape') {
+                      setPackageNumValue(String(packageNumber));
+                      setEditingPackageNum(false);
+                    }
+                  }}
+                  autoFocus
+                  className="bg-svl-blue-bright text-white text-lg font-bold w-10 h-8 rounded-full text-center border-2 border-white"
+                />
+              ) : (
+                <span
+                  className="bg-svl-blue-bright text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white"
+                  onClick={() => {
+                    setPackageNumValue(String(packageNumber));
+                    setEditingPackageNum(true);
+                  }}
+                  title="Click to change package order"
+                >
+                  {packageNumber}
+                </span>
+              )}
               <Package size={20} className="text-svl-gray" />
               {editingName ? (
                 <input
@@ -104,7 +142,8 @@ const QuotePackage = ({
 
       {/* Package Content */}
       <div className="bg-white border-x border-b border-svl-gray rounded-b-xl p-4">
-        {groups.map((group) => {
+        {groups.map((group, groupIdx) => {
+          const groupNumber = groupIdx + 1;
           const groupLineItems = lineItems.filter(li => li.equipmentGroupId === group.id);
           return (
             <EquipmentGroup
@@ -112,10 +151,12 @@ const QuotePackage = ({
               group={group}
               lineItems={groupLineItems}
               packageNumber={packageNumber}
+              groupNumber={groupNumber}
               onUpdateLineItem={onUpdateLineItem}
               onDeleteLineItem={onDeleteLineItem}
               onAddLineItem={onAddLineItem}
               onMoveLineItem={onMoveLineItem}
+              onMoveGroup={onMoveEquipmentGroup}
               onDeleteGroup={onDeleteEquipmentGroup}
               onUpdateGroup={onUpdateEquipmentGroup}
               onOpenDescription={onOpenDescription}

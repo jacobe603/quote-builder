@@ -21,7 +21,7 @@ const LineItemRow = ({
   return (
     <tr className="border-b border-svl-gray bg-white hover:bg-svl-gray-light">
       {/* Line Number */}
-      <td className="py-1.5 px-1 w-16 bg-svl-gray-light border-r border-svl-gray">
+      <td className="py-1.5 px-1 w-20 bg-svl-gray-light border-r border-svl-gray">
         <LineNumberCell
           cellId={`${cellPrefix}-lineNum`}
           lineNumber={lineNumber}

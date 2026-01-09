@@ -83,7 +83,7 @@ const LineNumberCell = ({ cellId, lineNumber, onMove }) => {
           setIsEditing(false);
         }}
         onKeyDown={handleKeyDown}
-        className="w-14 px-1 py-0.5 text-xs font-mono border border-blue-400 rounded outline-none text-center"
+        className="w-16 px-1 py-0.5 text-xs font-mono border border-blue-400 rounded outline-none text-center"
       />
     );
   }
