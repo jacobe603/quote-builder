@@ -8,8 +8,7 @@ import { NavigationProvider } from './context/NavigationContext';
 import { Legend, QuotePackage, AppLayout } from './components';
 import {
   NewPackageModal,
-  NewEquipmentGroupModal,
-  EquipmentGroupDescriptionModal,
+  LineItemDescriptionModal,
   ProjectInfoModal,
   QuotePreviewModal
 } from './components/modals';
@@ -25,8 +24,7 @@ import { initialData } from './data/initialData';
 function QuoteBuilderContent() {
   const [data, setData] = useState(initialData);
   const [showNewPackageModal, setShowNewPackageModal] = useState(false);
-  const [newGroupPackageId, setNewGroupPackageId] = useState(null);
-  const [descriptionGroup, setDescriptionGroup] = useState(null);
+  const [descriptionItem, setDescriptionItem] = useState(null);
   const [showProjectInfoModal, setShowProjectInfoModal] = useState(false);
   const [showQuotePreview, setShowQuotePreview] = useState(false);
 
@@ -41,22 +39,25 @@ function QuoteBuilderContent() {
   }, []);
 
   const deleteLineItem = useCallback((itemId) => {
+    // Also delete any sub-lines when deleting a primary line
     setData(prev => ({
       ...prev,
-      lineItems: prev.lineItems.filter(li => li.id !== itemId)
+      lineItems: prev.lineItems.filter(li => li.id !== itemId && li.parentLineItemId !== itemId)
     }));
   }, []);
 
-  const addLineItem = useCallback((groupId) => {
-    const pkg = data.quotePackages.find(p =>
-      data.equipmentGroups.find(g => g.id === groupId)?.packageId === p.id
+  // Add a new primary line to a package
+  const addPrimaryLine = useCallback((packageId) => {
+    const pkg = data.quotePackages.find(p => p.id === packageId);
+    const existingPrimaries = data.lineItems.filter(
+      li => li.packageId === packageId && li.parentLineItemId === null
     );
-    const existingItems = data.lineItems.filter(li => li.equipmentGroupId === groupId);
-    const maxSortOrder = Math.max(0, ...existingItems.map(li => li.sortOrder || 0));
+    const maxSortOrder = Math.max(0, ...existingPrimaries.map(li => li.sortOrder || 0));
 
     const newItem = {
       id: generateId(),
-      equipmentGroupId: groupId,
+      packageId: packageId,
+      parentLineItemId: null,
       qty: 1,
       supplierId: '',
       manufacturerId: '',
@@ -68,14 +69,51 @@ function QuoteBuilderContent() {
       pay: 0,
       freight: 0,
       markup: pkg?.defaultMU || 1.35,
-      shorthand: 'New Item',
+      shorthand: 'New Primary Line',
+      sortOrder: maxSortOrder + 1,
+      // Description fields for primary lines
+      equipmentHeading: '',
+      tag: '',
+      equipmentBullets: '',
+      notes: ''
+    };
+    setData(prev => ({
+      ...prev,
+      lineItems: [...prev.lineItems, newItem]
+    }));
+  }, [data.quotePackages, data.lineItems]);
+
+  // Add a sub-line under a primary line
+  const addSubLine = useCallback((parentId) => {
+    const parent = data.lineItems.find(li => li.id === parentId);
+    if (!parent) return;
+
+    const existingSubLines = data.lineItems.filter(li => li.parentLineItemId === parentId);
+    const maxSortOrder = Math.max(0, ...existingSubLines.map(li => li.sortOrder || 0));
+
+    const newItem = {
+      id: generateId(),
+      packageId: parent.packageId,
+      parentLineItemId: parentId,
+      qty: 1,
+      supplierId: parent.supplierId,
+      manufacturerId: parent.manufacturerId,
+      equipmentTypeId: '',
+      model: '',
+      listPrice: 0,
+      priceIncrease: parent.priceIncrease,
+      multiplier: parent.multiplier,
+      pay: 0,
+      freight: 0,
+      markup: parent.markup,
+      shorthand: 'New Sub-line',
       sortOrder: maxSortOrder + 1
     };
     setData(prev => ({
       ...prev,
       lineItems: [...prev.lineItems, newItem]
     }));
-  }, [data.quotePackages, data.equipmentGroups, data.lineItems]);
+  }, [data.lineItems]);
 
   // Package Operations
   const updatePackageMU = useCallback((packageId, newMU) => {
@@ -99,15 +137,11 @@ function QuoteBuilderContent() {
   const deletePackage = useCallback((packageId) => {
     if (!confirm('Delete this package and all its contents?')) return;
 
-    setData(prev => {
-      const groupIds = prev.equipmentGroups.filter(g => g.packageId === packageId).map(g => g.id);
-      return {
-        ...prev,
-        quotePackages: prev.quotePackages.filter(p => p.id !== packageId),
-        equipmentGroups: prev.equipmentGroups.filter(g => g.packageId !== packageId),
-        lineItems: prev.lineItems.filter(li => !groupIds.includes(li.equipmentGroupId))
-      };
-    });
+    setData(prev => ({
+      ...prev,
+      quotePackages: prev.quotePackages.filter(p => p.id !== packageId),
+      lineItems: prev.lineItems.filter(li => li.packageId !== packageId)
+    }));
   }, []);
 
   const addPackage = useCallback(({ name, defaultMU }) => {
@@ -131,64 +165,6 @@ function QuoteBuilderContent() {
       projectInfo
     }));
   }, []);
-
-  // Equipment Group Operations
-  const updateEquipmentGroup = useCallback((groupId, field, value) => {
-    setData(prev => ({
-      ...prev,
-      equipmentGroups: prev.equipmentGroups.map(g =>
-        g.id === groupId ? { ...g, [field]: value } : g
-      )
-    }));
-  }, []);
-
-  const updateEquipmentGroupDescription = useCallback((groupId, descriptionData) => {
-    setData(prev => ({
-      ...prev,
-      equipmentGroups: prev.equipmentGroups.map(g =>
-        g.id === groupId ? { ...g, ...descriptionData } : g
-      )
-    }));
-  }, []);
-
-  const deleteEquipmentGroup = useCallback((groupId) => {
-    if (!confirm('Delete this equipment group and all its line items?')) return;
-
-    setData(prev => ({
-      ...prev,
-      equipmentGroups: prev.equipmentGroups.filter(g => g.id !== groupId),
-      lineItems: prev.lineItems.filter(li => li.equipmentGroupId !== groupId)
-    }));
-  }, []);
-
-  const addEquipmentGroup = useCallback((packageId) => {
-    setNewGroupPackageId(packageId);
-  }, []);
-
-  const createEquipmentGroup = useCallback(({ name }) => {
-    if (!newGroupPackageId) return;
-
-    const existingGroups = data.equipmentGroups.filter(g => g.packageId === newGroupPackageId);
-    const maxSortOrder = Math.max(0, ...existingGroups.map(g => g.sortOrder || 0));
-
-    const newGroup = {
-      id: generateId(),
-      packageId: newGroupPackageId,
-      name,
-      sortOrder: maxSortOrder + 1,
-      equipmentHeading: '',
-      tag: '',
-      equipmentBullets: '',
-      notes: ''
-    };
-
-    setData(prev => ({
-      ...prev,
-      equipmentGroups: [...prev.equipmentGroups, newGroup]
-    }));
-
-    setNewGroupPackageId(null);
-  }, [newGroupPackageId, data.equipmentGroups]);
 
   // Handle package number change for moving packages
   const movePackage = useCallback((packageId, newPackageNum) => {
@@ -222,138 +198,107 @@ function QuoteBuilderContent() {
     });
   }, []);
 
-  // Handle group number change for moving equipment groups
-  const moveEquipmentGroup = useCallback((groupId, newGroupNum, packageId) => {
-    const parsed = parseLineNumber(String(newGroupNum));
-    const targetPackageNum = parsed.packageNum;
-    const targetGroupNum = parsed.groupNum || parsed.packageNum; // Support both "2" and "1.2" formats
-
-    if (!targetPackageNum) {
-      console.warn('Invalid group number format');
-      return;
-    }
-
-    setData(prev => {
-      const sortedPackages = [...prev.quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-      // Determine target package
-      let targetPackage;
-      let finalGroupNum;
-
-      if (parsed.groupNum) {
-        // Format was "Package.Group" (e.g., "2.1")
-        targetPackage = sortedPackages[parsed.packageNum - 1];
-        finalGroupNum = parsed.groupNum;
-      } else {
-        // Format was just a number, keep same package
-        const currentGroup = prev.equipmentGroups.find(g => g.id === groupId);
-        targetPackage = prev.quotePackages.find(p => p.id === currentGroup?.packageId);
-        finalGroupNum = targetPackageNum;
-      }
-
-      if (!targetPackage) {
-        console.warn('Target package not found');
-        return prev;
-      }
-
-      const group = prev.equipmentGroups.find(g => g.id === groupId);
-      if (!group) return prev;
-
-      // Get all groups in target package
-      const targetPackageGroups = prev.equipmentGroups
-        .filter(g => g.packageId === targetPackage.id)
-        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-      // Update the group's packageId and sortOrder
-      const updatedGroups = prev.equipmentGroups.map(g => {
-        if (g.id === groupId) {
-          return {
-            ...g,
-            packageId: targetPackage.id,
-            sortOrder: finalGroupNum
-          };
-        }
-        return g;
-      });
-
-      return {
-        ...prev,
-        equipmentGroups: updatedGroups
-      };
-    });
-  }, []);
-
-  // Handle line number change for moving items (format: Package.Group.Item)
+  // Handle line number change for moving items
+  // Format: X.Y for primary lines, X.Y.Z for sub-lines
   const moveLineItem = useCallback((itemId, oldLineNum, newLineNum) => {
     const parsed = parseLineNumber(newLineNum);
-
-    if (!parsed.packageNum || !parsed.groupNum || !parsed.itemNum) {
-      console.warn('Invalid line number format. Use Package.Group.Item (e.g., 1.2.3)');
-      return;
-    }
+    const item = data.lineItems.find(li => li.id === itemId);
+    if (!item) return;
 
     const sortedPackages = [...data.quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    const targetPackage = sortedPackages[parsed.packageNum - 1];
 
-    if (!targetPackage) {
-      console.warn('Target package not found');
-      return;
-    }
+    if (parsed.itemNum) {
+      // Moving a sub-line (X.Y.Z format)
+      const targetPackage = sortedPackages[parsed.packageNum - 1];
+      if (!targetPackage) {
+        console.warn('Target package not found');
+        return;
+      }
 
-    const targetGroups = data.equipmentGroups
-      .filter(g => g.packageId === targetPackage.id)
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      // Find the target primary line
+      const primaryLines = data.lineItems
+        .filter(li => li.packageId === targetPackage.id && li.parentLineItemId === null)
+        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-    if (targetGroups.length === 0) {
-      console.warn('No groups in target package');
-      return;
-    }
+      const targetPrimary = primaryLines[parsed.groupNum - 1];
+      if (!targetPrimary) {
+        console.warn('Target primary line not found');
+        return;
+      }
 
-    const targetGroup = targetGroups[parsed.groupNum - 1];
-    if (!targetGroup) {
-      console.warn('Target group not found');
-      return;
-    }
-
-    setData(prev => {
-      const item = prev.lineItems.find(li => li.id === itemId);
-      if (!item) return prev;
-
-      const updatedItems = prev.lineItems.map(li => {
-        if (li.id === itemId) {
-          return {
-            ...li,
-            equipmentGroupId: targetGroup.id,
-            sortOrder: parsed.itemNum
-          };
-        }
-        return li;
-      });
-
-      return {
+      setData(prev => ({
         ...prev,
-        lineItems: updatedItems
-      };
-    });
-  }, [data.quotePackages, data.equipmentGroups]);
+        lineItems: prev.lineItems.map(li => {
+          if (li.id === itemId) {
+            return {
+              ...li,
+              packageId: targetPackage.id,
+              parentLineItemId: targetPrimary.id,
+              sortOrder: parsed.itemNum
+            };
+          }
+          return li;
+        })
+      }));
+    } else if (parsed.groupNum) {
+      // Moving a primary line (X.Y format)
+      const targetPackage = sortedPackages[parsed.packageNum - 1];
+      if (!targetPackage) {
+        console.warn('Target package not found');
+        return;
+      }
+
+      setData(prev => {
+        // Update the primary line
+        const updatedItems = prev.lineItems.map(li => {
+          if (li.id === itemId) {
+            return {
+              ...li,
+              packageId: targetPackage.id,
+              parentLineItemId: null,
+              sortOrder: parsed.groupNum
+            };
+          }
+          // Also move sub-lines if parent is being moved to different package
+          if (li.parentLineItemId === itemId && item.packageId !== targetPackage.id) {
+            return {
+              ...li,
+              packageId: targetPackage.id
+            };
+          }
+          return li;
+        });
+
+        return {
+          ...prev,
+          lineItems: updatedItems
+        };
+      });
+    }
+  }, [data.quotePackages, data.lineItems]);
 
   // Description Modal Handlers
-  const handleOpenDescription = useCallback((group) => {
-    setDescriptionGroup(group);
+  const handleOpenDescription = useCallback((item) => {
+    setDescriptionItem(item);
   }, []);
 
   const handleSaveDescription = useCallback((descriptionData) => {
-    if (descriptionGroup) {
-      updateEquipmentGroupDescription(descriptionGroup.id, descriptionData);
+    if (descriptionItem) {
+      setData(prev => ({
+        ...prev,
+        lineItems: prev.lineItems.map(li =>
+          li.id === descriptionItem.id ? { ...li, ...descriptionData } : li
+        )
+      }));
     }
-  }, [descriptionGroup, updateEquipmentGroupDescription]);
+  }, [descriptionItem]);
 
   // Sorted packages for rendering
   const sortedPackages = [...data.quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-  // Get fresh group data for the modal
-  const currentDescriptionGroup = descriptionGroup
-    ? data.equipmentGroups.find(g => g.id === descriptionGroup.id)
+  // Get fresh item data for the modal
+  const currentDescriptionItem = descriptionItem
+    ? data.lineItems.find(li => li.id === descriptionItem.id)
     : null;
 
   return (
@@ -411,31 +356,22 @@ function QuoteBuilderContent() {
           ) : (
           sortedPackages.map((pkg, pkgIdx) => {
             const packageNumber = pkgIdx + 1;
-            const pkgGroups = data.equipmentGroups
-              .filter(g => g.packageId === pkg.id)
-              .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-            const pkgLineItems = data.lineItems.filter(li =>
-              pkgGroups.some(g => g.id === li.equipmentGroupId)
-            );
+            const pkgLineItems = data.lineItems.filter(li => li.packageId === pkg.id);
             return (
               <QuotePackage
                 key={pkg.id}
                 pkg={pkg}
                 packageNumber={packageNumber}
-                groups={pkgGroups}
                 lineItems={pkgLineItems}
                 onUpdateLineItem={updateLineItem}
                 onDeleteLineItem={deleteLineItem}
-                onAddLineItem={addLineItem}
+                onAddPrimaryLine={addPrimaryLine}
+                onAddSubLine={addSubLine}
                 onMoveLineItem={moveLineItem}
                 onMovePackage={movePackage}
-                onMoveEquipmentGroup={moveEquipmentGroup}
                 onUpdatePackageMU={updatePackageMU}
                 onUpdatePackage={updatePackage}
                 onDeletePackage={deletePackage}
-                onAddEquipmentGroup={addEquipmentGroup}
-                onDeleteEquipmentGroup={deleteEquipmentGroup}
-                onUpdateEquipmentGroup={updateEquipmentGroup}
                 onOpenDescription={handleOpenDescription}
                 data={data}
               />
@@ -452,16 +388,10 @@ function QuoteBuilderContent() {
         onCreate={addPackage}
       />
 
-      <NewEquipmentGroupModal
-        isOpen={newGroupPackageId !== null}
-        onClose={() => setNewGroupPackageId(null)}
-        onCreate={createEquipmentGroup}
-      />
-
-      <EquipmentGroupDescriptionModal
-        isOpen={descriptionGroup !== null}
-        onClose={() => setDescriptionGroup(null)}
-        group={currentDescriptionGroup}
+      <LineItemDescriptionModal
+        isOpen={descriptionItem !== null}
+        onClose={() => setDescriptionItem(null)}
+        item={currentDescriptionItem}
         onSave={handleSaveDescription}
       />
 

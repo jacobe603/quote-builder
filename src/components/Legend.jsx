@@ -7,8 +7,12 @@ const Legend = () => (
     <div className="flex items-center justify-between flex-wrap gap-2">
       <div className="flex items-center gap-6 text-xs text-svl-gray-dark">
         <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-svl-blue-light/30 border-b-2 border-svl-blue rounded"></div>
+          <span>Primary Line</span>
+        </div>
+        <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-white border border-svl-gray rounded"></div>
-          <span>Editable</span>
+          <span>Sub-line</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-svl-gray-light rounded"></div>
