@@ -1,30 +1,26 @@
 import { useState } from 'react';
-import { Package, Layers, Trash2 } from 'lucide-react';
-import EquipmentGroup from './EquipmentGroup';
+import { Package, Plus, Trash2, ChevronDown, ChevronRight, FileText } from 'lucide-react';
+import LineItemRow from './LineItemRow';
 import { calculateGroupTotals } from '../utils/calculations';
 import { formatCurrency } from '../utils/helpers';
 
 /**
  * Quote Package Component
- * Top-level container for equipment groups
+ * Top-level container with primary lines and sub-lines in a single table
  */
 const QuotePackage = ({
   pkg,
   packageNumber,
-  groups,
   lineItems,
   onUpdateLineItem,
   onDeleteLineItem,
-  onAddLineItem,
+  onAddPrimaryLine,
+  onAddSubLine,
   onMoveLineItem,
   onMovePackage,
-  onMoveEquipmentGroup,
   onUpdatePackageMU,
   onUpdatePackage,
   onDeletePackage,
-  onAddEquipmentGroup,
-  onDeleteEquipmentGroup,
-  onUpdateEquipmentGroup,
   onOpenDescription,
   data
 }) => {
@@ -32,9 +28,27 @@ const QuotePackage = ({
   const [packageName, setPackageName] = useState(pkg.name);
   const [editingPackageNum, setEditingPackageNum] = useState(false);
   const [packageNumValue, setPackageNumValue] = useState(String(packageNumber));
+  const [collapsedPrimaries, setCollapsedPrimaries] = useState({});
 
   // Calculate package totals
   const packageTotals = calculateGroupTotals(lineItems);
+
+  // Get primary lines (no parent) sorted by sortOrder
+  const primaryLines = lineItems
+    .filter(li => li.parentLineItemId === null)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+  // Get sub-lines for a given primary line
+  const getSubLines = (primaryId) => lineItems
+    .filter(li => li.parentLineItemId === primaryId)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+  const togglePrimary = (primaryId) => {
+    setCollapsedPrimaries(prev => ({
+      ...prev,
+      [primaryId]: !prev[primaryId]
+    }));
+  };
 
   const handleNameSave = () => {
     setEditingName(false);
@@ -49,6 +63,9 @@ const QuotePackage = ({
     }
     setPackageNumValue(String(packageNumber));
   };
+
+  // Check if a primary line has description content
+  const hasDescription = (item) => item.equipmentHeading || item.equipmentBullets || item.notes;
 
   return (
     <div className="mb-8">
@@ -140,39 +157,89 @@ const QuotePackage = ({
         </div>
       </div>
 
-      {/* Package Content */}
-      <div className="bg-white border-x border-b border-svl-gray rounded-b-xl p-4">
-        {groups.map((group, groupIdx) => {
-          const groupNumber = groupIdx + 1;
-          const groupLineItems = lineItems.filter(li => li.equipmentGroupId === group.id);
-          return (
-            <EquipmentGroup
-              key={group.id}
-              group={group}
-              lineItems={groupLineItems}
-              packageNumber={packageNumber}
-              groupNumber={groupNumber}
-              onUpdateLineItem={onUpdateLineItem}
-              onDeleteLineItem={onDeleteLineItem}
-              onAddLineItem={onAddLineItem}
-              onMoveLineItem={onMoveLineItem}
-              onMoveGroup={onMoveEquipmentGroup}
-              onDeleteGroup={onDeleteEquipmentGroup}
-              onUpdateGroup={onUpdateEquipmentGroup}
-              onOpenDescription={onOpenDescription}
-              data={data}
-            />
-          );
-        })}
+      {/* Package Content - Single Table */}
+      <div className="bg-white border-x border-b border-svl-gray rounded-b-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-max">
+            <thead>
+              <tr className="bg-svl-gray-light text-xs text-svl-gray-dark border-b-2 border-svl-gray">
+                <th className="py-2 px-1 text-center w-8"></th>
+                <th className="py-2 px-1 text-center w-20 bg-svl-gray border-r border-svl-gray">#</th>
+                <th className="py-2 px-1 text-left w-12">Qty</th>
+                <th className="py-2 px-1 text-left w-20">Supplier</th>
+                <th className="py-2 px-1 text-left w-20">Mfr</th>
+                <th className="py-2 px-1 text-left w-20">Equip</th>
+                <th className="py-2 px-1 text-left w-28">Model</th>
+                <th className="py-2 px-1 text-right w-24">List</th>
+                <th className="py-2 px-1 text-right w-14">$ ↑</th>
+                <th className="py-2 px-1 text-right w-14">Multi</th>
+                <th className="py-2 px-1 text-right w-14">Pay</th>
+                <th className="py-2 px-1 text-right w-24 bg-svl-gray/50">Mfg Net</th>
+                <th className="py-2 px-1 text-right w-20 bg-svl-gray/50">Mfg Comm</th>
+                <th className="py-2 px-1 text-right w-20">Freight</th>
+                <th className="py-2 px-1 text-right w-24 bg-svl-gray/50">Total Net</th>
+                <th className="py-2 px-1 text-right w-14">MU</th>
+                <th className="py-2 px-1 text-right w-24 bg-svl-green-light">Comm</th>
+                <th className="py-2 px-1 text-right w-28 bg-svl-blue-light">Bid Price</th>
+                <th className="py-2 px-1 text-center w-20">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {primaryLines.map((primary, primaryIdx) => {
+                const primaryNumber = primaryIdx + 1;
+                const subLines = getSubLines(primary.id);
+                const isCollapsed = collapsedPrimaries[primary.id];
+                const hasSubLines = subLines.length > 0;
 
-        {/* Add Equipment Group Button */}
-        <button
-          onClick={() => onAddEquipmentGroup(pkg.id)}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-svl-gray-dark hover:bg-svl-gray-light rounded-lg border-2 border-dashed border-svl-gray w-full justify-center"
-        >
-          <Layers size={16} />
-          Add Equipment Group
-        </button>
+                return (
+                  <>
+                    {/* Primary Line Row */}
+                    <LineItemRow
+                      key={primary.id}
+                      item={primary}
+                      lineNumber={`${packageNumber}.${primaryNumber}`}
+                      isPrimary={true}
+                      isCollapsed={isCollapsed}
+                      hasSubLines={hasSubLines}
+                      onToggle={() => togglePrimary(primary.id)}
+                      onUpdate={(field, value) => onUpdateLineItem(primary.id, field, value)}
+                      onDelete={() => onDeleteLineItem(primary.id)}
+                      onAddSubLine={() => onAddSubLine(primary.id)}
+                      onOpenDescription={() => onOpenDescription(primary)}
+                      hasDescription={hasDescription(primary)}
+                      onMove={onMoveLineItem}
+                      data={data}
+                    />
+                    {/* Sub-line Rows */}
+                    {!isCollapsed && subLines.map((subLine, subIdx) => (
+                      <LineItemRow
+                        key={subLine.id}
+                        item={subLine}
+                        lineNumber={`${packageNumber}.${primaryNumber}.${subIdx + 1}`}
+                        isPrimary={false}
+                        onUpdate={(field, value) => onUpdateLineItem(subLine.id, field, value)}
+                        onDelete={() => onDeleteLineItem(subLine.id)}
+                        onMove={onMoveLineItem}
+                        data={data}
+                      />
+                    ))}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Add Primary Line Button */}
+        <div className="p-3 border-t border-svl-gray">
+          <button
+            onClick={() => onAddPrimaryLine(pkg.id)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-svl-blue-bright hover:bg-svl-blue-light rounded-lg border border-svl-blue-bright"
+          >
+            <Plus size={16} />
+            Add Primary Line
+          </button>
+        </div>
       </div>
     </div>
   );
