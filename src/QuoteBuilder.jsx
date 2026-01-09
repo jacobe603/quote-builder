@@ -5,7 +5,7 @@ import { Package, Plus, FileText, Settings } from 'lucide-react';
 import { NavigationProvider } from './context/NavigationContext';
 
 // Components
-import { Legend, QuotePackage } from './components';
+import { Legend, QuotePackage, AppLayout } from './components';
 import {
   NewPackageModal,
   NewEquipmentGroupModal,
@@ -314,57 +314,58 @@ function QuoteBuilderContent() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-full mx-auto">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Quote Builder</h1>
-            <p className="text-sm text-gray-500 mt-1">Excel-like navigation | Arrow keys to move | Enter to edit</p>
+    <AppLayout>
+      <div className="p-6">
+        <div className="max-w-full mx-auto">
+          {/* Page Header */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-svl-black">Quote Builder</h1>
+              <p className="text-sm text-svl-gray-dark mt-1">Excel-like navigation | Arrow keys to move | Enter to edit</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowProjectInfoModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-svl-gray hover:bg-svl-gray-light text-svl-gray-dark font-medium rounded-md"
+              >
+                <Settings size={18} />
+                Project Info
+              </button>
+              <button
+                onClick={() => setShowQuotePreview(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-svl-green hover:bg-svl-forest text-white font-medium rounded-md"
+              >
+                <FileText size={18} />
+                Generate Quote
+              </button>
+              <button
+                onClick={() => setShowNewPackageModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-svl-blue-bright hover:bg-svl-blue text-white font-medium rounded-md"
+              >
+                <Package size={18} />
+                New Quote Package
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowProjectInfoModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg shadow-sm"
-            >
-              <Settings size={18} />
-              Project Info
-            </button>
-            <button
-              onClick={() => setShowQuotePreview(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm"
-            >
-              <FileText size={18} />
-              Generate Quote
-            </button>
-            <button
-              onClick={() => setShowNewPackageModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
-            >
-              <Package size={18} />
-              New Quote Package
-            </button>
-          </div>
-        </div>
 
-        {/* Legend */}
-        <Legend />
+          {/* Legend */}
+          <Legend />
 
-        {/* Quote Packages */}
-        {sortedPackages.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
-            <Package size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">No Quote Packages</h3>
-            <p className="text-gray-500 mb-4">Get started by creating your first quote package</p>
-            <button
-              onClick={() => setShowNewPackageModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
-            >
-              <Plus size={18} />
-              Create Quote Package
-            </button>
-          </div>
-        ) : (
+          {/* Quote Packages */}
+          {sortedPackages.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-svl-gray">
+              <Package size={48} className="mx-auto text-svl-gray mb-4" />
+              <h3 className="text-lg font-medium text-svl-gray-dark mb-2">No Quote Packages</h3>
+              <p className="text-svl-gray-dark mb-4">Get started by creating your first quote package</p>
+              <button
+                onClick={() => setShowNewPackageModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-svl-blue-bright hover:bg-svl-blue text-white font-medium rounded-md"
+              >
+                <Plus size={18} />
+                Create Quote Package
+              </button>
+            </div>
+          ) : (
           sortedPackages.map((pkg, pkgIdx) => {
             const packageNumber = pkgIdx + 1;
             const pkgGroups = data.equipmentGroups
@@ -397,6 +398,7 @@ function QuoteBuilderContent() {
             );
           })
         )}
+        </div>
       </div>
 
       {/* Modals */}
@@ -431,7 +433,7 @@ function QuoteBuilderContent() {
         onClose={() => setShowQuotePreview(false)}
         data={data}
       />
-    </div>
+    </AppLayout>
   );
 }
 

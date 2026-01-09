@@ -54,14 +54,14 @@ const EquipmentGroup = ({
   let lineCounter = 0;
 
   return (
-    <div className="mb-6 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+    <div className="mb-6 rounded-lg overflow-hidden shadow-sm border border-svl-gray">
       {/* Group Header */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-slate-700 to-slate-600 text-white px-4 py-2.5">
+      <div className="flex items-center justify-between bg-svl-blue text-white px-4 py-2.5">
         <div className="flex items-center gap-2 flex-1">
-          <button onClick={() => setExpanded(!expanded)} className="p-0.5 hover:bg-slate-500 rounded">
+          <button onClick={() => setExpanded(!expanded)} className="p-0.5 hover:bg-svl-navy rounded">
             {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
           </button>
-          <Layers size={16} className="text-slate-400" />
+          <Layers size={16} className="text-svl-blue-light" />
           {editingName ? (
             <input
               type="text"
@@ -70,11 +70,11 @@ const EquipmentGroup = ({
               onBlur={handleNameSave}
               onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
               autoFocus
-              className="bg-slate-600 border border-slate-400 rounded px-2 py-0.5 text-sm flex-1 max-w-md"
+              className="bg-svl-navy border border-svl-blue-bright rounded px-2 py-0.5 text-sm flex-1 max-w-md"
             />
           ) : (
             <span
-              className="font-medium cursor-pointer hover:bg-slate-600 px-2 py-0.5 rounded"
+              className="font-medium cursor-pointer hover:bg-svl-navy px-2 py-0.5 rounded"
               onClick={() => setEditingName(true)}
               title="Click to edit name"
             >
@@ -86,8 +86,8 @@ const EquipmentGroup = ({
             onClick={() => onOpenDescription(group)}
             className={`p-1.5 rounded flex items-center gap-1 text-xs ${
               hasDescription
-                ? 'bg-blue-500/30 text-blue-200 hover:bg-blue-500/50'
-                : 'hover:bg-slate-500 text-slate-300'
+                ? 'bg-svl-blue-bright/30 text-svl-blue-light hover:bg-svl-blue-bright/50'
+                : 'hover:bg-svl-navy text-svl-blue-light'
             }`}
             title="Edit Description"
           >
@@ -97,13 +97,13 @@ const EquipmentGroup = ({
         </div>
         <div className="flex items-center gap-6">
           <div className="flex gap-6 text-sm">
-            <span className="text-gray-300">Net: <span className="text-white">{formatCurrency(groupTotals.totalNet)}</span></span>
-            <span className="text-gray-300">Comm: <span className="text-green-300">{formatCurrency(groupTotals.salesComm)}</span></span>
-            <span className="text-gray-300">Bid: <span className="text-blue-300 font-semibold">{formatCurrency(groupTotals.bidPrice)}</span></span>
+            <span className="text-svl-blue-light">Net: <span className="text-white">{formatCurrency(groupTotals.totalNet)}</span></span>
+            <span className="text-svl-blue-light">Comm: <span className="text-svl-green-light">{formatCurrency(groupTotals.salesComm)}</span></span>
+            <span className="text-svl-blue-light">Bid: <span className="text-white font-semibold">{formatCurrency(groupTotals.bidPrice)}</span></span>
           </div>
           <button
             onClick={() => onDeleteGroup(group.id)}
-            className="p-1 hover:bg-red-500/30 rounded text-red-300"
+            className="p-1 hover:bg-svl-red/30 rounded text-svl-red-light"
             title="Delete Equipment Group"
           >
             <Trash2 size={16} />
@@ -115,8 +115,8 @@ const EquipmentGroup = ({
         <div className="overflow-x-auto">
           <table className="w-full min-w-max">
             <thead>
-              <tr className="bg-gray-100 text-xs text-gray-600 border-b-2 border-gray-300">
-                <th className="py-2 px-1 text-center w-16 bg-slate-200 border-r border-gray-300">#</th>
+              <tr className="bg-svl-gray-light text-xs text-svl-gray-dark border-b-2 border-svl-gray">
+                <th className="py-2 px-1 text-center w-16 bg-svl-gray border-r border-svl-gray">#</th>
                 <th className="py-2 px-1 text-left w-8"></th>
                 <th className="py-2 px-1 text-left w-12">Qty</th>
                 <th className="py-2 px-1 text-left w-20">Supplier</th>
@@ -127,13 +127,13 @@ const EquipmentGroup = ({
                 <th className="py-2 px-1 text-right w-14">$ ↑</th>
                 <th className="py-2 px-1 text-right w-14">Multi</th>
                 <th className="py-2 px-1 text-right w-14">Pay</th>
-                <th className="py-2 px-1 text-right w-24 bg-gray-200">Mfg Net</th>
-                <th className="py-2 px-1 text-right w-20 bg-gray-200">Mfg Comm</th>
+                <th className="py-2 px-1 text-right w-24 bg-svl-gray/50">Mfg Net</th>
+                <th className="py-2 px-1 text-right w-20 bg-svl-gray/50">Mfg Comm</th>
                 <th className="py-2 px-1 text-right w-20">Freight</th>
-                <th className="py-2 px-1 text-right w-24 bg-gray-200">Total Net</th>
+                <th className="py-2 px-1 text-right w-24 bg-svl-gray/50">Total Net</th>
                 <th className="py-2 px-1 text-right w-14">MU</th>
-                <th className="py-2 px-1 text-right w-24 bg-green-200">Comm</th>
-                <th className="py-2 px-1 text-right w-28 bg-blue-200">Bid Price</th>
+                <th className="py-2 px-1 text-right w-24 bg-svl-green-light">Comm</th>
+                <th className="py-2 px-1 text-right w-28 bg-svl-blue-light">Bid Price</th>
                 <th className="py-2 px-1 text-center w-16">Actions</th>
               </tr>
             </thead>
@@ -182,10 +182,10 @@ const EquipmentGroup = ({
               })}
             </tbody>
           </table>
-          <div className="p-2 bg-gray-50 border-t border-gray-200">
+          <div className="p-2 bg-svl-gray-light border-t border-svl-gray">
             <button
               onClick={() => onAddLineItem(group.id)}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded border border-blue-200"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-svl-blue-bright hover:bg-svl-blue-light rounded border border-svl-blue-bright"
             >
               <Plus size={14} /> Add Line Item
             </button>
