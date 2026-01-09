@@ -21,13 +21,14 @@ export const formatPercent = (value) => {
 
 /**
  * Parse line number like "1.2.3" into components
+ * Format: Package.Group.Item (e.g., 1.2.3 = Package 1, Group 2, Item 3)
  */
 export const parseLineNumber = (lineNum) => {
-  const parts = lineNum.split('.').map(p => parseInt(p, 10));
+  const parts = String(lineNum).split('.').map(p => parseInt(p, 10));
   return {
     packageNum: parts[0] || null,
-    lineNum: parts[1] || null,
-    subLineNum: parts[2] || null,
+    groupNum: parts[1] || null,
+    itemNum: parts[2] || null,
     depth: parts.filter(p => !isNaN(p)).length
   };
 };

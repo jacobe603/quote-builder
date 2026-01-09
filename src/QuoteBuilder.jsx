@@ -43,7 +43,7 @@ function QuoteBuilderContent() {
   const deleteLineItem = useCallback((itemId) => {
     setData(prev => ({
       ...prev,
-      lineItems: prev.lineItems.filter(li => li.id !== itemId && li.parentLineItemId !== itemId)
+      lineItems: prev.lineItems.filter(li => li.id !== itemId)
     }));
   }, []);
 
@@ -51,13 +51,12 @@ function QuoteBuilderContent() {
     const pkg = data.quotePackages.find(p =>
       data.equipmentGroups.find(g => g.id === groupId)?.packageId === p.id
     );
-    const existingItems = data.lineItems.filter(li => li.equipmentGroupId === groupId && li.parentLineItemId === null);
+    const existingItems = data.lineItems.filter(li => li.equipmentGroupId === groupId);
     const maxSortOrder = Math.max(0, ...existingItems.map(li => li.sortOrder || 0));
 
     const newItem = {
       id: generateId(),
       equipmentGroupId: groupId,
-      parentLineItemId: null,
       qty: 1,
       supplierId: '',
       manufacturerId: '',
@@ -77,37 +76,6 @@ function QuoteBuilderContent() {
       lineItems: [...prev.lineItems, newItem]
     }));
   }, [data.quotePackages, data.equipmentGroups, data.lineItems]);
-
-  const addSubItem = useCallback((parentId) => {
-    const parent = data.lineItems.find(li => li.id === parentId);
-    if (!parent) return;
-
-    const existingSubItems = data.lineItems.filter(li => li.parentLineItemId === parentId);
-    const maxSortOrder = Math.max(0, ...existingSubItems.map(li => li.sortOrder || 0));
-
-    const newItem = {
-      id: generateId(),
-      equipmentGroupId: parent.equipmentGroupId,
-      parentLineItemId: parentId,
-      qty: 1,
-      supplierId: parent.supplierId,
-      manufacturerId: parent.manufacturerId,
-      equipmentTypeId: '',
-      model: '',
-      listPrice: 0,
-      priceIncrease: parent.priceIncrease,
-      multiplier: parent.multiplier,
-      pay: 0,
-      freight: 0,
-      markup: parent.markup,
-      shorthand: 'New Sub Item',
-      sortOrder: maxSortOrder + 1
-    };
-    setData(prev => ({
-      ...prev,
-      lineItems: [...prev.lineItems, newItem]
-    }));
-  }, [data.lineItems]);
 
   // Package Operations
   const updatePackageMU = useCallback((packageId, newMU) => {
@@ -222,12 +190,105 @@ function QuoteBuilderContent() {
     setNewGroupPackageId(null);
   }, [newGroupPackageId, data.equipmentGroups]);
 
-  // Handle line number change for moving items
+  // Handle package number change for moving packages
+  const movePackage = useCallback((packageId, newPackageNum) => {
+    const targetNum = parseInt(newPackageNum, 10);
+    if (isNaN(targetNum) || targetNum < 1) {
+      console.warn('Invalid package number');
+      return;
+    }
+
+    setData(prev => {
+      const sortedPackages = [...prev.quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      const currentIdx = sortedPackages.findIndex(p => p.id === packageId);
+      const targetIdx = Math.min(Math.max(targetNum - 1, 0), sortedPackages.length - 1);
+
+      if (currentIdx === targetIdx) return prev;
+
+      // Remove from current position and insert at target
+      const [movedPkg] = sortedPackages.splice(currentIdx, 1);
+      sortedPackages.splice(targetIdx, 0, movedPkg);
+
+      // Reassign sort orders
+      const updatedPackages = sortedPackages.map((pkg, idx) => ({
+        ...pkg,
+        sortOrder: idx + 1
+      }));
+
+      return {
+        ...prev,
+        quotePackages: updatedPackages
+      };
+    });
+  }, []);
+
+  // Handle group number change for moving equipment groups
+  const moveEquipmentGroup = useCallback((groupId, newGroupNum, packageId) => {
+    const parsed = parseLineNumber(String(newGroupNum));
+    const targetPackageNum = parsed.packageNum;
+    const targetGroupNum = parsed.groupNum || parsed.packageNum; // Support both "2" and "1.2" formats
+
+    if (!targetPackageNum) {
+      console.warn('Invalid group number format');
+      return;
+    }
+
+    setData(prev => {
+      const sortedPackages = [...prev.quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+      // Determine target package
+      let targetPackage;
+      let finalGroupNum;
+
+      if (parsed.groupNum) {
+        // Format was "Package.Group" (e.g., "2.1")
+        targetPackage = sortedPackages[parsed.packageNum - 1];
+        finalGroupNum = parsed.groupNum;
+      } else {
+        // Format was just a number, keep same package
+        const currentGroup = prev.equipmentGroups.find(g => g.id === groupId);
+        targetPackage = prev.quotePackages.find(p => p.id === currentGroup?.packageId);
+        finalGroupNum = targetPackageNum;
+      }
+
+      if (!targetPackage) {
+        console.warn('Target package not found');
+        return prev;
+      }
+
+      const group = prev.equipmentGroups.find(g => g.id === groupId);
+      if (!group) return prev;
+
+      // Get all groups in target package
+      const targetPackageGroups = prev.equipmentGroups
+        .filter(g => g.packageId === targetPackage.id)
+        .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+      // Update the group's packageId and sortOrder
+      const updatedGroups = prev.equipmentGroups.map(g => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            packageId: targetPackage.id,
+            sortOrder: finalGroupNum
+          };
+        }
+        return g;
+      });
+
+      return {
+        ...prev,
+        equipmentGroups: updatedGroups
+      };
+    });
+  }, []);
+
+  // Handle line number change for moving items (format: Package.Group.Item)
   const moveLineItem = useCallback((itemId, oldLineNum, newLineNum) => {
     const parsed = parseLineNumber(newLineNum);
 
-    if (!parsed.packageNum || !parsed.lineNum) {
-      console.warn('Invalid line number format');
+    if (!parsed.packageNum || !parsed.groupNum || !parsed.itemNum) {
+      console.warn('Invalid line number format. Use Package.Group.Item (e.g., 1.2.3)');
       return;
     }
 
@@ -239,53 +300,35 @@ function QuoteBuilderContent() {
       return;
     }
 
-    const targetGroups = data.equipmentGroups.filter(g => g.packageId === targetPackage.id);
+    const targetGroups = data.equipmentGroups
+      .filter(g => g.packageId === targetPackage.id)
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
     if (targetGroups.length === 0) {
       console.warn('No groups in target package');
       return;
     }
 
-    const targetGroup = targetGroups[0];
+    const targetGroup = targetGroups[parsed.groupNum - 1];
+    if (!targetGroup) {
+      console.warn('Target group not found');
+      return;
+    }
 
     setData(prev => {
       const item = prev.lineItems.find(li => li.id === itemId);
       if (!item) return prev;
 
-      let updatedItems = [...prev.lineItems];
-
-      if (parsed.subLineNum) {
-        const targetParentItems = prev.lineItems
-          .filter(li => li.equipmentGroupId === targetGroup.id && li.parentLineItemId === null)
-          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-        const targetParent = targetParentItems[parsed.lineNum - 1];
-
-        if (targetParent) {
-          updatedItems = updatedItems.map(li => {
-            if (li.id === itemId) {
-              return {
-                ...li,
-                equipmentGroupId: targetGroup.id,
-                parentLineItemId: targetParent.id,
-                sortOrder: parsed.subLineNum
-              };
-            }
-            return li;
-          });
+      const updatedItems = prev.lineItems.map(li => {
+        if (li.id === itemId) {
+          return {
+            ...li,
+            equipmentGroupId: targetGroup.id,
+            sortOrder: parsed.itemNum
+          };
         }
-      } else {
-        updatedItems = updatedItems.map(li => {
-          if (li.id === itemId) {
-            return {
-              ...li,
-              equipmentGroupId: targetGroup.id,
-              parentLineItemId: null,
-              sortOrder: parsed.lineNum
-            };
-          }
-          return li;
-        });
-      }
+        return li;
+      });
 
       return {
         ...prev,
@@ -384,8 +427,9 @@ function QuoteBuilderContent() {
                 onUpdateLineItem={updateLineItem}
                 onDeleteLineItem={deleteLineItem}
                 onAddLineItem={addLineItem}
-                onAddSubItem={addSubItem}
                 onMoveLineItem={moveLineItem}
+                onMovePackage={movePackage}
+                onMoveEquipmentGroup={moveEquipmentGroup}
                 onUpdatePackageMU={updatePackageMU}
                 onUpdatePackage={updatePackage}
                 onDeletePackage={deletePackage}

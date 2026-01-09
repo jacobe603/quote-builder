@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Trash2, Layers, FileText } from 'lucide-react';
 import LineItemRow from './LineItemRow';
 import { calculateGroupTotals } from '../utils/calculations';
@@ -12,32 +12,24 @@ const EquipmentGroup = ({
   group,
   lineItems,
   packageNumber,
+  groupNumber,
   onUpdateLineItem,
   onDeleteLineItem,
   onAddLineItem,
-  onAddSubItem,
   onMoveLineItem,
+  onMoveGroup,
   onDeleteGroup,
   onUpdateGroup,
   onOpenDescription,
   data
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const [expandedItems, setExpandedItems] = useState({});
   const [editingName, setEditingName] = useState(false);
   const [groupName, setGroupName] = useState(group.name);
+  const [editingGroupNum, setEditingGroupNum] = useState(false);
+  const [groupNumValue, setGroupNumValue] = useState(`${packageNumber}.${groupNumber}`);
 
-  const parentItems = lineItems
-    .filter(li => li.parentLineItemId === null)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-  const getSubItems = (parentId) => lineItems
-    .filter(li => li.parentLineItemId === parentId)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-  const toggleItem = (itemId) => {
-    setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
-  };
+  const sortedItems = [...lineItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   // Calculate group totals
   const groupTotals = calculateGroupTotals(lineItems);
@@ -47,11 +39,14 @@ const EquipmentGroup = ({
     onUpdateGroup(group.id, 'name', groupName);
   };
 
+  const handleGroupNumSave = () => {
+    setEditingGroupNum(false);
+    onMoveGroup(group.id, groupNumValue, group.packageId);
+    setGroupNumValue(`${packageNumber}.${groupNumber}`);
+  };
+
   // Check if description has content
   const hasDescription = group.equipmentHeading || group.equipmentBullets || group.notes;
-
-  // Generate line numbers
-  let lineCounter = 0;
 
   return (
     <div className="mb-6 rounded-lg overflow-hidden shadow-sm border border-svl-gray">
@@ -61,6 +56,35 @@ const EquipmentGroup = ({
           <button onClick={() => setExpanded(!expanded)} className="p-0.5 hover:bg-svl-navy rounded">
             {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
           </button>
+          {/* Editable Group Number */}
+          {editingGroupNum ? (
+            <input
+              type="text"
+              value={groupNumValue}
+              onChange={(e) => setGroupNumValue(e.target.value)}
+              onBlur={handleGroupNumSave}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleGroupNumSave();
+                if (e.key === 'Escape') {
+                  setGroupNumValue(`${packageNumber}.${groupNumber}`);
+                  setEditingGroupNum(false);
+                }
+              }}
+              autoFocus
+              className="bg-svl-blue-bright text-white text-sm font-bold w-14 px-1.5 py-0.5 rounded text-center border border-white"
+            />
+          ) : (
+            <span
+              className="bg-svl-blue-bright/50 text-white text-sm font-bold px-2 py-0.5 rounded cursor-pointer hover:bg-svl-blue-bright"
+              onClick={() => {
+                setGroupNumValue(`${packageNumber}.${groupNumber}`);
+                setEditingGroupNum(true);
+              }}
+              title="Click to change group order (format: Package.Group)"
+            >
+              {packageNumber}.{groupNumber}
+            </span>
+          )}
           <Layers size={16} className="text-svl-blue-light" />
           {editingName ? (
             <input
@@ -116,8 +140,7 @@ const EquipmentGroup = ({
           <table className="w-full min-w-max">
             <thead>
               <tr className="bg-svl-gray-light text-xs text-svl-gray-dark border-b-2 border-svl-gray">
-                <th className="py-2 px-1 text-center w-16 bg-svl-gray border-r border-svl-gray">#</th>
-                <th className="py-2 px-1 text-left w-8"></th>
+                <th className="py-2 px-1 text-center w-20 bg-svl-gray border-r border-svl-gray">#</th>
                 <th className="py-2 px-1 text-left w-12">Qty</th>
                 <th className="py-2 px-1 text-left w-20">Supplier</th>
                 <th className="py-2 px-1 text-left w-20">Mfr</th>
@@ -138,48 +161,17 @@ const EquipmentGroup = ({
               </tr>
             </thead>
             <tbody>
-              {parentItems.map((item) => {
-                lineCounter++;
-                const currentLineNum = lineCounter;
-                const subItems = getSubItems(item.id);
-                const hasChildren = subItems.length > 0;
-                const isItemExpanded = expandedItems[item.id] !== false;
-                const lineNumber = `${packageNumber}.${currentLineNum}`;
-
-                return (
-                  <React.Fragment key={item.id}>
-                    <LineItemRow
-                      item={item}
-                      lineNumber={lineNumber}
-                      isSubItem={false}
-                      hasChildren={hasChildren}
-                      isExpanded={isItemExpanded}
-                      onToggle={() => toggleItem(item.id)}
-                      onUpdate={(field, value) => onUpdateLineItem(item.id, field, value)}
-                      onDelete={() => onDeleteLineItem(item.id)}
-                      onAddSubItem={() => onAddSubItem(item.id)}
-                      onMove={onMoveLineItem}
-                      data={data}
-                    />
-                    {hasChildren && isItemExpanded && subItems.map((subItem, subIdx) => (
-                      <LineItemRow
-                        key={subItem.id}
-                        item={subItem}
-                        lineNumber={`${lineNumber}.${subIdx + 1}`}
-                        isSubItem={true}
-                        hasChildren={false}
-                        isExpanded={false}
-                        onToggle={() => {}}
-                        onUpdate={(field, value) => onUpdateLineItem(subItem.id, field, value)}
-                        onDelete={() => onDeleteLineItem(subItem.id)}
-                        onAddSubItem={() => {}}
-                        onMove={onMoveLineItem}
-                        data={data}
-                      />
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+              {sortedItems.map((item, idx) => (
+                <LineItemRow
+                  key={item.id}
+                  item={item}
+                  lineNumber={`${packageNumber}.${groupNumber}.${idx + 1}`}
+                  onUpdate={(field, value) => onUpdateLineItem(item.id, field, value)}
+                  onDelete={() => onDeleteLineItem(item.id)}
+                  onMove={onMoveLineItem}
+                  data={data}
+                />
+              ))}
             </tbody>
           </table>
           <div className="p-2 bg-svl-gray-light border-t border-svl-gray">
