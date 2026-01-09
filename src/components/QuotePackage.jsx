@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, Plus, Trash2, ChevronDown, ChevronRight, FileText } from 'lucide-react';
+import { Package, Plus, Trash2 } from 'lucide-react';
 import LineItemRow from './LineItemRow';
 import { calculateGroupTotals } from '../utils/calculations';
 import { formatCurrency } from '../utils/helpers';
