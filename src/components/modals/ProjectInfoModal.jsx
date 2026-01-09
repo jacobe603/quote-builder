@@ -52,7 +52,7 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
         {/* Row 1: Customer Info */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               To (Customer/Company)
             </label>
             <input
@@ -60,11 +60,11 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.customerName}
               onChange={(e) => handleChange('customerName', e.target.value)}
               placeholder="e.g., All American P&H"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               Attention
             </label>
             <input
@@ -72,7 +72,7 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.attention}
               onChange={(e) => handleChange('attention', e.target.value)}
               placeholder="e.g., Darrin"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
         </div>
@@ -80,7 +80,7 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
         {/* Row 2: Project Info */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               Project Name
             </label>
             <input
@@ -88,11 +88,11 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.projectName}
               onChange={(e) => handleChange('projectName', e.target.value)}
               placeholder="e.g., Maryvale Retreat Center Ph 1"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               Location
             </label>
             <input
@@ -100,7 +100,7 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.location}
               onChange={(e) => handleChange('location', e.target.value)}
               placeholder="e.g., Valley City, ND"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
         {/* Row 3: Engineer and Quote # */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               Engineer Company
             </label>
             <input
@@ -116,11 +116,11 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.engineerCompany}
               onChange={(e) => handleChange('engineerCompany', e.target.value)}
               placeholder="e.g., MBN Engineers"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               SVL Quote #
             </label>
             <input
@@ -128,7 +128,7 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.projectNumber}
               onChange={(e) => handleChange('projectNumber', e.target.value)}
               placeholder="e.g., 1173870"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
         </div>
@@ -136,18 +136,18 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
         {/* Row 4: Dates */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               Bid Date
             </label>
             <input
               type="date"
               value={formData.bidDate}
               onChange={(e) => handleChange('bidDate', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-svl-gray-dark mb-1">
               Addendums
             </label>
             <input
@@ -155,14 +155,14 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
               value={formData.addendums}
               onChange={(e) => handleChange('addendums', e.target.value)}
               placeholder="e.g., 1, 2, 3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
             />
           </div>
         </div>
 
         {/* Row 5: Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-svl-gray-dark mb-1">
             Quote Notes
           </label>
           <input
@@ -170,13 +170,13 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
             value={formData.quoteNotes}
             onChange={(e) => handleChange('quoteNotes', e.target.value)}
             placeholder="e.g., BUY QUOTE"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
           />
         </div>
 
         {/* Row 6: Sales Rep */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-svl-gray-dark mb-1">
             Sales Representative
           </label>
           <input
@@ -184,21 +184,21 @@ const ProjectInfoModal = ({ isOpen, onClose, projectInfo, onSave }) => {
             value={formData.salesRep}
             onChange={(e) => handleChange('salesRep', e.target.value)}
             placeholder="e.g., Ben Eisenschenk / Lee Froemke"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-svl-gray rounded-md focus:ring-2 focus:ring-svl-blue-bright focus:border-svl-blue-bright"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-2 pt-4 border-t border-svl-gray">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg"
+            className="px-4 py-2 text-sm font-medium text-svl-gray-dark hover:bg-svl-gray-light rounded-md"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="px-4 py-2 text-sm font-medium text-white bg-svl-blue-bright hover:bg-svl-blue rounded-md"
           >
             Save Project Info
           </button>
