@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigation } from '../../context/NavigationContext';
 import { ChevronDown } from 'lucide-react';
 
@@ -11,10 +12,12 @@ const DropdownCell = ({ cellId, value, onChange, options, className = '' }) => {
   const cellRef = useRef(null);
   const inputRef = useRef(null);
   const listRef = useRef(null);
+  const containerRef = useRef(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
   const isActive = activeCell === cellId;
   const isCurrentlyEditing = isActive && isEditing;
@@ -43,6 +46,14 @@ const DropdownCell = ({ cellId, value, onChange, options, className = '' }) => {
       inputRef.current.select();
       setShowDropdown(true);
       setHighlightedIndex(0);
+      // Calculate dropdown position
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + 2,
+          left: rect.left
+        });
+      }
     } else {
       setShowDropdown(false);
       setSearchTerm('');
@@ -74,6 +85,10 @@ const DropdownCell = ({ cellId, value, onChange, options, className = '' }) => {
         setSearchTerm('');
       } else if (e.key === 'Tab') {
         e.preventDefault();
+        // Select the top filtered item on Tab (if available)
+        if (filteredOptions.length > 0) {
+          onChange(filteredOptions[0].id);
+        }
         setIsEditing(false);
         setSearchTerm('');
       } else if (e.key === 'ArrowDown') {
@@ -128,7 +143,7 @@ const DropdownCell = ({ cellId, value, onChange, options, className = '' }) => {
 
   if (isCurrentlyEditing) {
     return (
-      <div className="relative">
+      <div ref={containerRef} className="relative">
         <div className="flex items-center">
           <input
             ref={inputRef}
@@ -149,10 +164,11 @@ const DropdownCell = ({ cellId, value, onChange, options, className = '' }) => {
           />
           <ChevronDown size={12} className="absolute right-1 text-svl-gray-dark pointer-events-none" />
         </div>
-        {showDropdown && (
+        {showDropdown && createPortal(
           <ul
             ref={listRef}
-            className="dropdown-list absolute z-50 w-48 max-h-48 overflow-y-auto bg-white border border-svl-gray rounded shadow-lg mt-0.5 left-0"
+            className="dropdown-list fixed z-[9999] w-48 max-h-48 overflow-y-auto bg-white border border-svl-gray rounded shadow-lg"
+            style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
           >
             <li
               className={`px-2 py-1 text-xs cursor-pointer ${
@@ -187,7 +203,8 @@ const DropdownCell = ({ cellId, value, onChange, options, className = '' }) => {
                 No matches found
               </li>
             )}
-          </ul>
+          </ul>,
+          document.body
         )}
       </div>
     );

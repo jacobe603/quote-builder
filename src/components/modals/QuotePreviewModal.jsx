@@ -8,10 +8,15 @@ import { formatCurrency } from '../../utils/helpers';
  * Styled to match SVL quote PDF format
  */
 const generateQuoteHTML = (data) => {
-  const { projectInfo, quotePackages, equipmentGroups, lineItems } = data;
+  const { projectInfo, quotePackages, lineItems } = data;
 
   // Sort packages by sortOrder
   const sortedPackages = [...quotePackages].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+  // Get primary lines (those without a parent) for a package
+  const getPrimaryLines = (pkgId) => lineItems
+    .filter(li => li.packageId === pkgId && li.parentLineItemId === null)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   // Format date for display (M/D/YYYY format)
   const formatDate = (dateStr) => {
@@ -40,12 +45,9 @@ const generateQuoteHTML = (data) => {
     return { bullets, notes };
   };
 
-  // Calculate package total bid price
+  // Calculate package total bid price (all line items in package)
   const calculatePackageTotal = (pkgId) => {
-    const pkgGroups = equipmentGroups.filter(g => g.packageId === pkgId);
-    const pkgLineItems = lineItems.filter(li =>
-      pkgGroups.some(g => g.id === li.equipmentGroupId)
-    );
+    const pkgLineItems = lineItems.filter(li => li.packageId === pkgId);
     return pkgLineItems.reduce((total, item) => {
       const calc = calculateLineItem(item);
       return total + calc.bidPrice;
@@ -94,10 +96,7 @@ const generateQuoteHTML = (data) => {
 
   // Generate each package section
   sortedPackages.forEach((pkg) => {
-    const pkgGroups = equipmentGroups
-      .filter(g => g.packageId === pkg.id)
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
+    const primaryLines = getPrimaryLines(pkg.id);
     const packageTotal = calculatePackageTotal(pkg.id);
 
     // Package Header - Blue with underline, italic "Basis of Design" style
@@ -108,25 +107,25 @@ const generateQuoteHTML = (data) => {
         </h2>
     `;
 
-    // Generate each equipment group within the package
-    pkgGroups.forEach((group) => {
-      const hasContent = group.equipmentHeading || group.equipmentBullets || group.notes;
+    // Generate each primary line within the package (replaces equipment groups)
+    primaryLines.forEach((primaryLine) => {
+      const hasContent = primaryLine.equipmentHeading || primaryLine.equipmentBullets || primaryLine.notes;
 
       if (hasContent) {
         // Equipment heading line with tag right-aligned
-        if (group.equipmentHeading) {
+        if (primaryLine.equipmentHeading) {
           html += `
             <div style="display: flex; justify-content: space-between; margin-top: 8px; margin-bottom: 4px;">
               <div style="font-weight: bold;">
-                ${group.equipmentHeading}
+                ${primaryLine.equipmentHeading}
               </div>
-              ${group.tag ? `<div style="font-weight: bold;">Tag: ${group.tag}</div>` : ''}
+              ${primaryLine.tag ? `<div style="font-weight: bold;">Tag: ${primaryLine.tag}</div>` : ''}
             </div>
           `;
         }
 
         // Parse content for bullets and notes
-        const { bullets, notes: inlineNotes } = parseContent(group.equipmentBullets);
+        const { bullets, notes: inlineNotes } = parseContent(primaryLine.equipmentBullets);
 
         // Equipment Bullets
         if (bullets.length > 0) {
@@ -145,8 +144,8 @@ const generateQuoteHTML = (data) => {
         }
 
         // Notes section
-        if (group.notes) {
-          const notesLines = group.notes.split('\n').filter(line => line.trim());
+        if (primaryLine.notes) {
+          const notesLines = primaryLine.notes.split('\n').filter(line => line.trim());
           notesLines.forEach(note => {
             // Check if it's a clarification or note that should be highlighted
             if (note.toUpperCase().includes('NOT INCLUDED') || note.toUpperCase().includes('CLARIFICATION')) {
