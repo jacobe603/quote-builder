@@ -5,7 +5,7 @@ import { useNavigation } from '../../context/NavigationContext';
  * Line Number Cell - Special cell for line numbers
  * Supports editing to move items to new positions
  */
-const LineNumberCell = ({ cellId, lineNumber, onMove, isSubItem }) => {
+const LineNumberCell = ({ cellId, lineNumber, onMove }) => {
   const { activeCell, setActiveCell, isEditing, setIsEditing, registerCell } = useNavigation();
   const cellRef = useRef(null);
   const inputRef = useRef(null);
@@ -96,9 +96,8 @@ const LineNumberCell = ({ cellId, lineNumber, onMove, isSubItem }) => {
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       onFocus={() => setActiveCell(cellId)}
-      className={`px-1 py-0.5 text-xs font-mono cursor-pointer rounded text-center font-semibold outline-none
-        ${isActive ? 'ring-2 ring-blue-500 ring-inset' : 'hover:bg-blue-100'}
-        ${isSubItem ? 'text-amber-700' : 'text-slate-700'}`}
+      className={`px-1 py-0.5 text-xs font-mono cursor-pointer rounded text-center font-semibold outline-none text-slate-700
+        ${isActive ? 'ring-2 ring-blue-500 ring-inset' : 'hover:bg-blue-100'}`}
       title="Click to edit and move item"
     >
       {lineNumber}

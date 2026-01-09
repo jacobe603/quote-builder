@@ -8,11 +8,7 @@ const Legend = () => (
       <div className="flex items-center gap-6 text-xs text-svl-gray-dark">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-white border border-svl-gray rounded"></div>
-          <span>Line Item</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-svl-orange-light border-l-4 border-l-svl-orange border border-svl-gray rounded"></div>
-          <span>Sub Line Item</span>
+          <span>Editable</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-svl-gray-light rounded"></div>

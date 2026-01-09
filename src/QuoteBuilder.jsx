@@ -43,7 +43,7 @@ function QuoteBuilderContent() {
   const deleteLineItem = useCallback((itemId) => {
     setData(prev => ({
       ...prev,
-      lineItems: prev.lineItems.filter(li => li.id !== itemId && li.parentLineItemId !== itemId)
+      lineItems: prev.lineItems.filter(li => li.id !== itemId)
     }));
   }, []);
 
@@ -51,13 +51,12 @@ function QuoteBuilderContent() {
     const pkg = data.quotePackages.find(p =>
       data.equipmentGroups.find(g => g.id === groupId)?.packageId === p.id
     );
-    const existingItems = data.lineItems.filter(li => li.equipmentGroupId === groupId && li.parentLineItemId === null);
+    const existingItems = data.lineItems.filter(li => li.equipmentGroupId === groupId);
     const maxSortOrder = Math.max(0, ...existingItems.map(li => li.sortOrder || 0));
 
     const newItem = {
       id: generateId(),
       equipmentGroupId: groupId,
-      parentLineItemId: null,
       qty: 1,
       supplierId: '',
       manufacturerId: '',
@@ -77,37 +76,6 @@ function QuoteBuilderContent() {
       lineItems: [...prev.lineItems, newItem]
     }));
   }, [data.quotePackages, data.equipmentGroups, data.lineItems]);
-
-  const addSubItem = useCallback((parentId) => {
-    const parent = data.lineItems.find(li => li.id === parentId);
-    if (!parent) return;
-
-    const existingSubItems = data.lineItems.filter(li => li.parentLineItemId === parentId);
-    const maxSortOrder = Math.max(0, ...existingSubItems.map(li => li.sortOrder || 0));
-
-    const newItem = {
-      id: generateId(),
-      equipmentGroupId: parent.equipmentGroupId,
-      parentLineItemId: parentId,
-      qty: 1,
-      supplierId: parent.supplierId,
-      manufacturerId: parent.manufacturerId,
-      equipmentTypeId: '',
-      model: '',
-      listPrice: 0,
-      priceIncrease: parent.priceIncrease,
-      multiplier: parent.multiplier,
-      pay: 0,
-      freight: 0,
-      markup: parent.markup,
-      shorthand: 'New Sub Item',
-      sortOrder: maxSortOrder + 1
-    };
-    setData(prev => ({
-      ...prev,
-      lineItems: [...prev.lineItems, newItem]
-    }));
-  }, [data.lineItems]);
 
   // Package Operations
   const updatePackageMU = useCallback((packageId, newMU) => {
@@ -251,41 +219,16 @@ function QuoteBuilderContent() {
       const item = prev.lineItems.find(li => li.id === itemId);
       if (!item) return prev;
 
-      let updatedItems = [...prev.lineItems];
-
-      if (parsed.subLineNum) {
-        const targetParentItems = prev.lineItems
-          .filter(li => li.equipmentGroupId === targetGroup.id && li.parentLineItemId === null)
-          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-        const targetParent = targetParentItems[parsed.lineNum - 1];
-
-        if (targetParent) {
-          updatedItems = updatedItems.map(li => {
-            if (li.id === itemId) {
-              return {
-                ...li,
-                equipmentGroupId: targetGroup.id,
-                parentLineItemId: targetParent.id,
-                sortOrder: parsed.subLineNum
-              };
-            }
-            return li;
-          });
+      const updatedItems = prev.lineItems.map(li => {
+        if (li.id === itemId) {
+          return {
+            ...li,
+            equipmentGroupId: targetGroup.id,
+            sortOrder: parsed.lineNum
+          };
         }
-      } else {
-        updatedItems = updatedItems.map(li => {
-          if (li.id === itemId) {
-            return {
-              ...li,
-              equipmentGroupId: targetGroup.id,
-              parentLineItemId: null,
-              sortOrder: parsed.lineNum
-            };
-          }
-          return li;
-        });
-      }
+        return li;
+      });
 
       return {
         ...prev,
@@ -384,7 +327,6 @@ function QuoteBuilderContent() {
                 onUpdateLineItem={updateLineItem}
                 onDeleteLineItem={deleteLineItem}
                 onAddLineItem={addLineItem}
-                onAddSubItem={addSubItem}
                 onMoveLineItem={moveLineItem}
                 onUpdatePackageMU={updatePackageMU}
                 onUpdatePackage={updatePackage}

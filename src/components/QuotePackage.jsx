@@ -16,7 +16,6 @@ const QuotePackage = ({
   onUpdateLineItem,
   onDeleteLineItem,
   onAddLineItem,
-  onAddSubItem,
   onMoveLineItem,
   onUpdatePackageMU,
   onUpdatePackage,
@@ -116,7 +115,6 @@ const QuotePackage = ({
               onUpdateLineItem={onUpdateLineItem}
               onDeleteLineItem={onDeleteLineItem}
               onAddLineItem={onAddLineItem}
-              onAddSubItem={onAddSubItem}
               onMoveLineItem={onMoveLineItem}
               onDeleteGroup={onDeleteEquipmentGroup}
               onUpdateGroup={onUpdateEquipmentGroup}

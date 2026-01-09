@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Trash2, Layers, FileText } from 'lucide-react';
 import LineItemRow from './LineItemRow';
 import { calculateGroupTotals } from '../utils/calculations';
@@ -15,7 +15,6 @@ const EquipmentGroup = ({
   onUpdateLineItem,
   onDeleteLineItem,
   onAddLineItem,
-  onAddSubItem,
   onMoveLineItem,
   onDeleteGroup,
   onUpdateGroup,
@@ -23,21 +22,10 @@ const EquipmentGroup = ({
   data
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const [expandedItems, setExpandedItems] = useState({});
   const [editingName, setEditingName] = useState(false);
   const [groupName, setGroupName] = useState(group.name);
 
-  const parentItems = lineItems
-    .filter(li => li.parentLineItemId === null)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-  const getSubItems = (parentId) => lineItems
-    .filter(li => li.parentLineItemId === parentId)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-
-  const toggleItem = (itemId) => {
-    setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
-  };
+  const sortedItems = [...lineItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   // Calculate group totals
   const groupTotals = calculateGroupTotals(lineItems);
@@ -49,9 +37,6 @@ const EquipmentGroup = ({
 
   // Check if description has content
   const hasDescription = group.equipmentHeading || group.equipmentBullets || group.notes;
-
-  // Generate line numbers
-  let lineCounter = 0;
 
   return (
     <div className="mb-6 rounded-lg overflow-hidden shadow-sm border border-svl-gray">
@@ -117,7 +102,6 @@ const EquipmentGroup = ({
             <thead>
               <tr className="bg-svl-gray-light text-xs text-svl-gray-dark border-b-2 border-svl-gray">
                 <th className="py-2 px-1 text-center w-16 bg-svl-gray border-r border-svl-gray">#</th>
-                <th className="py-2 px-1 text-left w-8"></th>
                 <th className="py-2 px-1 text-left w-12">Qty</th>
                 <th className="py-2 px-1 text-left w-20">Supplier</th>
                 <th className="py-2 px-1 text-left w-20">Mfr</th>
@@ -138,48 +122,17 @@ const EquipmentGroup = ({
               </tr>
             </thead>
             <tbody>
-              {parentItems.map((item) => {
-                lineCounter++;
-                const currentLineNum = lineCounter;
-                const subItems = getSubItems(item.id);
-                const hasChildren = subItems.length > 0;
-                const isItemExpanded = expandedItems[item.id] !== false;
-                const lineNumber = `${packageNumber}.${currentLineNum}`;
-
-                return (
-                  <React.Fragment key={item.id}>
-                    <LineItemRow
-                      item={item}
-                      lineNumber={lineNumber}
-                      isSubItem={false}
-                      hasChildren={hasChildren}
-                      isExpanded={isItemExpanded}
-                      onToggle={() => toggleItem(item.id)}
-                      onUpdate={(field, value) => onUpdateLineItem(item.id, field, value)}
-                      onDelete={() => onDeleteLineItem(item.id)}
-                      onAddSubItem={() => onAddSubItem(item.id)}
-                      onMove={onMoveLineItem}
-                      data={data}
-                    />
-                    {hasChildren && isItemExpanded && subItems.map((subItem, subIdx) => (
-                      <LineItemRow
-                        key={subItem.id}
-                        item={subItem}
-                        lineNumber={`${lineNumber}.${subIdx + 1}`}
-                        isSubItem={true}
-                        hasChildren={false}
-                        isExpanded={false}
-                        onToggle={() => {}}
-                        onUpdate={(field, value) => onUpdateLineItem(subItem.id, field, value)}
-                        onDelete={() => onDeleteLineItem(subItem.id)}
-                        onAddSubItem={() => {}}
-                        onMove={onMoveLineItem}
-                        data={data}
-                      />
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+              {sortedItems.map((item, idx) => (
+                <LineItemRow
+                  key={item.id}
+                  item={item}
+                  lineNumber={`${packageNumber}.${idx + 1}`}
+                  onUpdate={(field, value) => onUpdateLineItem(item.id, field, value)}
+                  onDelete={() => onDeleteLineItem(item.id)}
+                  onMove={onMoveLineItem}
+                  data={data}
+                />
+              ))}
             </tbody>
           </table>
           <div className="p-2 bg-svl-gray-light border-t border-svl-gray">
